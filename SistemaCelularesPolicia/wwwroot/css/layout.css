@@ -1,0 +1,86 @@
+﻿/* --- layout.css: Estructura Global y Navegación --- */
+
+:root {
+    /* --- PALETA DE COLORES GLOBAL --- */
+    --police-primary: #1e3a8a;
+    --police-hover: #172554;
+    --public-primary: #15803d;
+    --public-hover: #14532d;
+    --color-purple: #7c3aed;
+    --color-orange: #ea580c;
+    --color-green: #059669;
+    --input-border: #d1d5db;
+    --text-muted: #9ca3af;
+    --radius-card: 0.75rem;
+    --radius-input: 0.5rem;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #f3f4f6;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+a {
+    text-decoration: none;
+    color: var(--police-primary);
+}
+
+body:not(.bg-app) {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+body.bg-app {
+    min-height: 100vh;
+    height: auto; /* Permite crecer según el contenido */
+}
+
+/* --- HEADER Y NAVEGACIÓN SUPERIOR --- */
+.bg-police {
+    background-color: var(--police-primary) !important;
+}
+
+.bg-public {
+    background-color: var(--public-primary) !important;
+}
+
+/* --- NAVEGACIÓN SECUNDARIA (TABS) --- */
+.nav-tabs .nav-link {
+    color: #6b7280;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
+    margin-bottom: -1px;
+}
+
+    .nav-tabs .nav-link:hover {
+        color: #111827;
+        background-color: transparent;
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: transparent !important;
+        color: currentColor !important;
+        border: none;
+        border-bottom: 3px solid currentColor !important;
+    }
+
+/* --- FOOTER --- */
+.footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    padding: 1.5rem 0;
+    color: #6b7280;
+    width: 100%;
+}

@@ -1,0 +1,61 @@
+﻿@model SistemaCelularesPolicia.Models.Celular
+@{
+    ViewData["Title"] = "Actualizar Estado";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="bg-police text-white p-4 rounded-top">
+                    <h4 class="mb-0"><i class="bi bi-arrow-repeat me-2"></i> Actualizar Estado / Devolución</h4>
+                </div>
+
+                <div class="card-body p-5">
+                    <div class="alert alert-light border mb-4">
+                        <div class="row">
+                            <div class="col-6"><strong>Marca/Modelo:</strong> @Model.Marca @Model.Modelo</div>
+                            <div class="col-6"><strong>IMEI:</strong> @Model.Imei</div>
+                            <div class="col-12 mt-2">
+                                <strong>Estado Actual:</strong>
+                                <span class="badge bg-secondary">@Model.Situacion</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="CambiarEstado" method="post">
+                        <input type="hidden" name="idCelular" value="@Model.IdCelular" />
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-police">Nuevo Estado</label>
+                            <div class="input-with-icon">
+                                <i class="bi bi-list-check"></i>
+                                <select name="nuevaSituacion" class="form-select bg-white" asp-items="ViewBag.Situaciones">
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-police">
+                                Documento / Justificación <span class="text-danger">*</span>
+                            </label>
+                            <div class="textarea-with-icon">
+                                <i class="bi bi-file-text"></i>
+                                <textarea name="justificacion" class="form-control" rows="3" required
+                                          placeholder="Ej: Entregado a propietario Sr. Juan Pérez con Acta N° 045-2025"></textarea>
+                            </div>
+                            <div class="form-text text-muted">Esta acción quedará registrada en el historial de auditoría.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                            <a asp-action="VerRegistros" class="btn btn-link text-muted">Cancelar</a>
+                            <button type="submit" class="btn btn-police py-3">
+                                Confirmar Cambio de Estado
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

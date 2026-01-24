@@ -1,0 +1,85 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Consulta Pública";
+    // Asumimos que usarás el _Layout.cshtml principal o uno específico si lo creas después
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Contenedor Principal -->
+<div class="container py-5">
+
+    <!-- Encabezado (Replicando el estilo limpio del React) -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-public">Consulta de Celulares Recuperados</h1>
+        <p class="text-muted fs-5">Verifique si su equipo se encuentra en nuestra base de datos de incautaciones</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+
+            <!-- Tarjeta del Formulario -->
+            <div class="card card-custom p-4 mb-4">
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h2 class="h4 text-secondary mb-2">Consultar por IMEI</h2>
+                        <p class="text-muted small">Ingrese los 15 dígitos de su código IMEI.</p>
+                    </div>
+
+                    <form asp-controller="Consulta" asp-action="Buscar" method="post">
+
+                        <!-- Input de IMEI con Ícono -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-secondary">Número IMEI</label>
+                            <div class="input-group-custom">
+                                <!-- Icono de Bootstrap equivalente a Hash/Barcode -->
+                                <i class="bi bi-upc-scan fs-5"></i>
+                                <input type="text"
+                                       name="imei"
+                                       class="form-control form-control-lg bg-light"
+                                       placeholder="Ej: 352010000000000"
+                                       maxlength="15"
+                                       required
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <!-- Solo números JS inline -->
+                            </div>
+                            <!-- Espacio para mensajes de error del servidor -->
+                            @if (ViewBag.Error != null)
+                            {
+                                <div class="text-danger mt-2 small d-flex align-items-center">
+                                    <i class="bi bi-exclamation-circle me-1"></i> @ViewBag.Error
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Botón de Búsqueda -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-public btn-lg fs-6 fw-bold">
+                                <i class="bi bi-search me-2"></i> BUSCAR CELULAR
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <!-- Banner Informativo: ¿Cómo encontrar el IMEI? -->
+            <!-- Replicando el estilo 'bg-blue-50' del React -->
+            <div class="alert bg-public-soft border-0 rounded-3 d-flex align-items-start shadow-sm">
+                <div class="bg-public text-white rounded p-2 me-3 mt-1">
+                    <i class="bi bi-info-lg"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading h6 fw-bold text-public mb-2">¿Cómo encontrar el IMEI de tu celular?</h5>
+                    <ul class="list-unstyled mb-0 small text-muted">
+                        <li class="mb-1"><i class="bi bi-dot"></i> Marca <strong>*#06#</strong> en tu celular para ver el IMEI.</li>
+                        <li class="mb-1"><i class="bi bi-dot"></i> Revisa la caja original del dispositivo.</li>
+                        <li class="mb-1"><i class="bi bi-dot"></i> <strong>Android:</strong> Configuración > Acerca del teléfono.</li>
+                        <li><i class="bi bi-dot"></i> <strong>iPhone:</strong> Configuración > General > Información.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

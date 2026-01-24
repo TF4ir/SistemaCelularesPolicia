@@ -29,8 +29,6 @@ public partial class UsuarioPublico
 
     public DateTime? UltimoAcceso { get; set; }
 
-    public string? TokenVerificacion { get; set; }
-
     public bool? EmailVerificado { get; set; }
 
     public virtual ICollection<ConsultaPublico> ConsultaPublicos { get; set; } = new List<ConsultaPublico>();

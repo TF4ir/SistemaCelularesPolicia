@@ -1,0 +1,62 @@
+﻿@model List<string>
+@{
+    ViewData["Title"] = "Códigos de Respaldo";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Códigos de Recuperación</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/layout.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="bg-app">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card p-4 border-success border-2">
+                    <div class="card-body text-center">
+
+                        <div class="text-success mb-3">
+                            <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
+                        </div>
+
+                        <h3 class="fw-bold text-dark">¡Seguridad Activada!</h3>
+                        <p class="text-muted">
+                            Tu cuenta ahora está protegida con doble factor de autenticación.
+                        </p>
+
+                        <div class="alert alert-warning text-start small d-flex" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                            <div>
+                                <strong>IMPORTANTE:</strong>
+                                Guarda estos códigos de recuperación en un lugar seguro. Si pierdes tu celular, serán la única forma de acceder a tu cuenta.
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-4 rounded border mb-4">
+                            <div class="row">
+                                @foreach (var codigo in Model)
+                                {
+                                    <div class="col-6 mb-2 text-start">
+                                        <span class="font-monospace fw-bold text-dark fs-5">@codigo</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <a asp-controller="Policia" asp-action="Registrar" class="btn btn-police w-100 py-3">
+                            Entendido, Ir al Sistema
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

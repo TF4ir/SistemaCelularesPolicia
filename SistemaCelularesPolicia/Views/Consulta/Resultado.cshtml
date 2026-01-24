@@ -1,0 +1,166 @@
+﻿@model SistemaCelularesPolicia.Models.Celular
+@{
+    ViewData["Title"] = "Resultado de Búsqueda";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool encontrado = Model != null;
+}
+
+<div class="container py-5">
+
+    <div class="mb-4">
+        <a asp-action="Index" class="link-back">
+            <i class="bi bi-arrow-left"></i> Realizar otra consulta
+        </a>
+    </div>
+
+    @if (encontrado)
+    {
+        /* --- CASO 1: CELULAR ENCONTRADO --- */
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="bg-public-soft p-4 border-bottom border-success-subtle">
+                <div class="d-flex align-items-center">
+                    <div class="bg-public text-white rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-check-lg fs-2"></i>
+                    </div>
+                    <div>
+                        <h2 class="h4 fw-bold text-public mb-1">¡Celular Encontrado!</h2>
+                        <p class="mb-0 text-success-emphasis">El dispositivo se encuentra registrado en nuestra base de datos.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="mb-4">
+                            <h5 class="text-secondary fw-bold mb-3">
+                                <i class="bi bi-phone me-2"></i>Información del Dispositivo
+                            </h5>
+                            <div class="bg-light rounded-3 p-4 border">
+                                <div class="row mb-2">
+                                    <div class="col-4 text-muted">Marca:</div>
+                                    <div class="col-8 fw-bold">@Model.Marca</div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-4 text-muted">Modelo:</div>
+                                    <div class="col-8 fw-bold">@Model.Modelo</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4 text-muted">IMEI:</div>
+                                    <div class="col-8 fw-bold font-monospace">@Model.Imei</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-4 text-muted">IMEI 2:</div>
+                                    <div class="col-8 fw-bold font-monospace">@Model.Imei2</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h5 class="text-secondary fw-bold mb-3">
+                                <i class="bi bi-file-earmark-text me-2"></i>Estado Actual
+                            </h5>
+                            <div class="bg-light rounded-3 p-4 border">
+                                <div class="mb-2">
+                                    <span class="text-muted">Situación:</span>
+                                    @{
+                                        string badgeClass = Model.Situacion == "RECUPERADO" ? "bg-success" : "bg-warning text-dark";
+                                    }
+                                    <span class="badge @badgeClass ms-2">@Model.Situacion</span>
+                                </div>
+                                <div>
+                                    <span class="text-muted">Fecha Registro:</span>
+                                    <span class="fw-bold ms-2">
+                                        @(Model.FechaRegistro.HasValue? Model.FechaRegistro.Value.ToString("dd 'de' MMMM, yyyy") : "Fecha no disponible")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+
+                        <div class="alert alert-primary border-0 shadow-sm rounded-3">
+                            <h5 class="alert-heading fw-bold">
+                                <i class="bi bi-geo-alt-fill me-2"></i>Fiscalía Asignada
+                            </h5>
+                            <p class="mb-3">Debe solicitar la devolución en:</p>
+
+                            <p class="fs-5 fw-bold mb-1">
+                                @(Model.IdFiscaliaNavigation?.NombreFiscalia ?? "Fiscalía de Turno")
+                            </p>
+                            <p class="small mb-3">
+                                <i class="bi bi-telephone me-1"></i> @(Model.IdFiscaliaNavigation?.Telefono ?? "Sin teléfono")
+                            </p>
+
+                            <div class="bg-white p-3 rounded-3 text-dark border border-primary-subtle">
+                                <strong>Pasos a seguir:</strong>
+                                <ol class="small mb-0 ps-3 mt-1">
+                                    <li>Acuda con su DNI y documentos de propiedad.</li>
+                                    <li>Solicite la devolución al fiscal encargado.</li>
+                                    <li>Espere la resolución de entrega.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="card bg-light border-0 mt-3">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-muted mb-3">Detalles del Operativo</h6>
+                                <p class="small mb-1"><strong>Lugar:</strong> @Model.LugarIncautacion</p>
+                                <p class="small mb-1">
+                                    <strong>Registrado por:</strong>
+                                    @(Model.IdPolicialRegistroNavigation?.RangoGrado)
+                                    @(Model.IdPolicialRegistroNavigation?.Apellidos),
+                                    @(Model.IdPolicialRegistroNavigation?.Nombres.Substring(0, 1)).
+                                </p>
+                                <p class="small mb-0"><strong>Unidad:</strong> @(Model.IdPolicialRegistroNavigation?.UnidadDependencia)</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+    else
+    {
+        /* --- CASO 2: NO ENCONTRADO --- */
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-body p-5">
+
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-light text-secondary rounded-circle p-3 me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-search fs-2"></i>
+                    </div>
+                    <div>
+                        <h2 class="h4 fw-bold text-dark mb-1">Celular No Encontrado</h2>
+                        <p class="mb-0 text-muted">El IMEI consultado no figura en nuestros registros actuales.</p>
+                    </div>
+                </div>
+
+                <div class="alert bg-public-soft border-0 d-flex align-items-start rounded-3 mb-4">
+                    <i class="bi bi-check-circle-fill text-public fs-4 me-3 mt-1"></i>
+                    <div>
+                        <h5 class="alert-heading h6 fw-bold text-public">Esto podría ser una buena noticia</h5>
+                        <p class="mb-0 small text-success-emphasis">
+                            Su celular no está registrado como incautado. Esto significa que no ha sido encontrado en poder de la delincuencia en los operativos recientes registrados en este sistema.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 d-flex align-items-start rounded-3">
+                    <i class="bi bi-info-circle-fill text-info fs-4 me-3 mt-1"></i>
+                    <div>
+                        <h5 class="alert-heading h6 fw-bold text-info-emphasis">¿Fue víctima de robo?</h5>
+                        <p class="mb-0 small text-info-emphasis">
+                            Si sufrió el robo de su equipo, le recomendamos presentar la denuncia en la comisaría más cercana si aún no lo ha hecho. Esto facilitará su devolución en caso de ser recuperado en el futuro.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,300 @@
+﻿@model SistemaCelularesPolicia.Models.Celular
+
+@{
+    ViewData["Title"] = "Corregir Datos";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <div class="card shadow-sm border-0 overflow-hidden">
+
+                <div class="bg-warning p-4 text-dark d-flex align-items-center">
+                    <div class="bg-white rounded-circle shadow-sm me-3 d-flex align-items-center justify-content-center"
+                         style="width: 60px; height: 60px; min-width: 60px; flex-shrink: 0;">
+                        <i class="bi bi-pencil-square fs-3 text-warning"></i>
+                    </div>
+
+                    <div>
+                        <h4 class="mb-0 fw-bold">Corregir Datos del Dispositivo</h4>
+                        <p class="mb-0 small opacity-75">Edición de errores administrativos. El estado legal no cambiará.</p>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="Corregir" method="post">
+                        <input type="hidden" asp-for="IdCelular" />
+                        <input type="hidden" asp-for="IdPolicialRegistro" />
+                        <input type="hidden" asp-for="FechaRegistro" />
+                        <input type="hidden" asp-for="FechaIncautacion" />
+                        <input type="hidden" asp-for="Situacion" /> <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-5">
+                            <h5 class="section-title text-primary border-bottom pb-2 mb-4">
+                                <i class="bi bi-sim"></i> Identificación del Dispositivo
+                            </h5>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label asp-for="Imei" class="form-label text-secondary fw-bold small">IMEI Principal <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="bi bi-hash"></i>
+                                        <input asp-for="Imei" class="form-control" maxlength="15" />
+                                    </div>
+                                    <span asp-validation-for="Imei" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="Imei2" class="form-label text-secondary fw-bold small">IMEI Secundario (Opcional)</label>
+                                    <div class="input-with-icon">
+                                        <i class="bi bi-hash"></i>
+                                        <input asp-for="Imei2" class="form-control" maxlength="15" placeholder="Dual SIM" />
+                                    </div>
+                                    <span asp-validation-for="Imei2" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <h5 class="section-title text-primary border-bottom pb-2 mb-4">
+                                <i class="bi bi-phone"></i> Características Técnicas
+                            </h5>
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <label asp-for="Marca" class="form-label text-secondary fw-bold small">Marca <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="bi bi-apple"></i>
+                                        <input asp-for="Marca" class="form-control" />
+                                    </div>
+                                    <span asp-validation-for="Marca" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="Modelo" class="form-label text-secondary fw-bold small">Modelo <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="bi bi-phone"></i>
+                                        <input asp-for="Modelo" class="form-control" />
+                                    </div>
+                                    <span asp-validation-for="Modelo" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="Color" class="form-label text-secondary fw-bold small">Color <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon">
+                                        <i class="bi bi-palette"></i>
+                                        <input asp-for="Color" class="form-control" />
+                                    </div>
+                                    <span asp-validation-for="Color" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <h5 class="section-title text-orange border-bottom pb-2 mb-4">
+                                <i class="bi bi-geo-alt"></i> Ubicación y Estado
+                            </h5>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label asp-for="LugarIncautacion" class="form-label text-secondary fw-bold small">Lugar de Incautación</label>
+                                    <div class="input-with-icon">
+                                        <i class="bi bi-geo-alt"></i>
+                                        <input asp-for="LugarIncautacion" class="form-control" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="IdFiscalia" class="form-label text-secondary fw-bold small">Fiscalía Asignada</label>
+                                    <div class="input-with-icon">
+                                        <i class="bi bi-bank"></i>
+                                        <select asp-for="IdFiscalia"
+                                                id="cboFiscalia"
+                                                class="form-select">
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="IdFiscalia" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label text-muted small">Situación Actual (No editable aquí)</label>
+                                    <div class="input-with-icon">
+                                        <i class="bi bi-lock-fill text-muted"></i>
+                                        <input value="@Model.Situacion" class="form-control bg-light text-muted" disabled />
+                                    </div>
+                                    <div class="form-text text-muted small">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Para devoluciones o cambios de estado, use la opción <strong>"Actualizar Estado"</strong> en el listado.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="section-title text-green border-bottom pb-2 mb-4">
+                                <i class="bi bi-journal-text"></i> Detalles Adicionales
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label asp-for="Descripcion" class="form-label text-secondary fw-bold small">Descripción Física</label>
+                                <div class="textarea-with-icon">
+                                    <i class="bi bi-card-text"></i>
+                                    <textarea asp-for="Descripcion" class="form-control" rows="2" placeholder="Daños físicos, estado de pantalla, etc."></textarea>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label asp-for="Observaciones" class="form-label text-secondary fw-bold small">Observaciones del Operativo</label>
+                                <div class="textarea-with-icon">
+                                    <i class="bi bi-file-text"></i>
+                                    <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                            <a asp-action="VerRegistros" class="btn btn-outline-secondary px-4">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning px-4 fw-bold text-dark">
+                                <i class="bi bi-check-lg me-2"></i> Guardar Correcciones
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#cboFiscalia').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Busque y seleccione la fiscalía',
+                allowClear: true,
+                minimumInputLength: 2, // Espera a que escriban 2 letras
+                // dropdownParent: $('#cboFiscalia').parent(), // Descomentar si usas Modals
+                ajax: {
+
+                    url: '/Policia/BuscarFiscalias',
+                    dataType: 'json',
+                    delay: 300,
+                    data: function (params) {
+                        return {
+                            term: params.term // Envía lo que escribes como 'term'
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data // Select2 leerá 'id' y 'text' automáticamente
+                        };
+                    }
+                },
+                language: {
+                    inputTooShort: () => 'Escriba al menos 2 letras...',
+                    searching: () => 'Buscando...',
+                    noResults: () => 'No se encontraron resultados'
+                }
+            });
+        });
+    </script>
+
+    <style>
+
+        /* 1. LA CAJA PRINCIPAL (Estado Normal) */
+        .select2-container--bootstrap-5 .select2-selection--single {
+            height: 48px !important; /* Misma altura que los otros inputs */
+            /* Borde gris idéntico al de "Situación" y los demás inputs */
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.5rem !important; /* Bordes redondeados suaves */
+            background-color: #fff;
+            background-image: none; /* Quitamos fondos extraños */
+            padding-top: 5px; /* Ajuste fino para centrar verticalmente */
+        }
+
+        /* 2. EL TEXTO INTERIOR (Respetando el icono) */
+        .input-with-icon .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            /* ESPACIO CLAVE: 42px a la izquierda para que no pise el icono del banco */
+            padding-left: 42px !important;
+            color: #212529; /* Color de texto estándar oscuro */
+            font-size: 1rem; /* Tamaño de fuente estándar */
+            line-height: 36px; /* Centrado vertical del texto */
+        }
+
+        /* Color del texto "placeholder" cuando no hay nada seleccionado */
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__placeholder {
+            color: #6c757d;
+        }
+
+        /* 3. LA FLECHA (Arrow) */
+        /* Ajustamos la posición para que se vea igual a la de "Situación" */
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+            position: absolute;
+            top: 50%;
+            right: 12px; /* Un poco más a la derecha */
+            transform: translateY(-50%);
+            width: auto;
+            height: auto;
+        }
+            /* Hacemos la flecha más sutil y oscura, como la nativa */
+            .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow::after {
+                border-color: #6c757d transparent transparent transparent;
+                border-width: 5px 5px 0 5px;
+            }
+
+
+        /* 4. ESTADO ACTIVO/ENFOQUE (Cuando haces clic) */
+        /* Usamos el brillo azul suave ESTÁNDAR de Bootstrap, no el oscuro */
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+        .select2-container--bootstrap-5.select2-container--open .select2-selection {
+            border-color: #86b7fe !important; /* Azul claro */
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important; /* Brillo suave */
+        }
+
+        /* 5. EL MENÚ DESPLEGABLE (La lista que se abre) */
+        .select2-dropdown {
+            /* Borde gris fino y sombra suave flotante, igual al estándar */
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+            border-radius: 0.5rem !important;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+            padding: 5px 0;
+            z-index: 1050; /* Asegura que flote sobre todo */
+        }
+
+        /* Quitamos el borde cuadrado feo de arriba cuando se abre hacia abajo */
+        .select2-container--bootstrap-5 .select2-dropdown--below {
+            border-top-left-radius: 0.5rem !important;
+            border-top-right-radius: 0.5rem !important;
+            margin-top: 4px; /* Un pequeño espacio de separación */
+        }
+
+        /* 6. CAJA DE BÚSQUEDA DENTRO DEL MENÚ */
+        .select2-search--dropdown {
+            padding: 8px 12px;
+        }
+
+            .select2-search--dropdown .select2-search__field {
+                border-radius: 0.3rem;
+                border: 1px solid #ced4da;
+                padding: 6px 12px;
+            }
+
+        /* 7. OPCIONES DE LA LISTA */
+        .select2-results__option {
+            padding: 8px 16px; /* Más espacio para que se vea limpio */
+            font-size: 0.95rem;
+        }
+
+    </style>
+}

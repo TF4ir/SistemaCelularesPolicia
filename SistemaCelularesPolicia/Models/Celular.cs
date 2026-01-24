@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace SistemaCelularesPolicia.Models;
 
@@ -15,6 +16,7 @@ public partial class Celular
 
     public string Modelo { get; set; } = null!;
 
+    [StringLength(50)]
     public string? Color { get; set; }
 
     public string? Descripcion { get; set; }

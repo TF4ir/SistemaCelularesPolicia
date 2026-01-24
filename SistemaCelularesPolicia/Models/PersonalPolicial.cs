@@ -33,6 +33,30 @@ public partial class PersonalPolicial
 
     public DateTime? UltimoAcceso { get; set; }
 
+    public string? SecretKey2fa { get; set; }
+
+    public DateTime? FechaConfiguracion2fa { get; set; }
+
+    public bool? DosFactoresActivo { get; set; }
+
+    public string? CodigosRespaldo2fa { get; set; }
+
+    public string? UltimoCodigoUsado { get; set; }
+
+    public DateTime? FechaUltimoCodigo { get; set; }
+
+    public int? IntentosFallidos2fa { get; set; }
+
+    public DateTime? BloqueadoHasta { get; set; }
+
+    public string? MetodoAlternativo { get; set; }
+
+    public bool? RecordarDispositivo { get; set; }
+
+    public string? TokenRecordar { get; set; }
+
+    public string? ContrasenaHash { get; set; }
+
     public virtual ICollection<Celular> Celulars { get; set; } = new List<Celular>();
 
     public virtual ICollection<EvidenciaCelular> EvidenciaCelulars { get; set; } = new List<EvidenciaCelular>();

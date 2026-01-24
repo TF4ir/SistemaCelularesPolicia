@@ -1,31 +1,222 @@
-html {
-  font-size: 14px;
+/* --- site.css: Componentes y Vistas Específicas --- */
+
+/* --- TARJETAS (CARDS) --- */
+.card {
+    border: none;
+    border-radius: var(--radius-card);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    background-color: #ffffff;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+/* --- INPUTS CON ICONOS --- */
+.input-with-icon {
+    position: relative;
+    margin-bottom: 0;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    .input-with-icon i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .input-with-icon .form-control,
+    .input-with-icon .form-select {
+        padding-left: 48px !important;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        border-radius: var(--radius-input);
+        border: 1px solid var(--input-border);
+        font-size: 0.95rem;
+        color: #374151;
+    }
+
+        .input-with-icon .form-control:focus,
+        .input-with-icon .form-select:focus {
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+            border-color: var(--police-primary);
+            outline: none;
+        }
+
+/* --- TEXTAREA CON ICONO --- */
+.textarea-with-icon {
+    position: relative;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+    .textarea-with-icon i {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        z-index: 5;
+    }
+
+    .textarea-with-icon textarea {
+        padding-left: 48px !important;
+        padding-top: 12px;
+        border-radius: var(--radius-input);
+        border: 1px solid var(--input-border);
+        font-size: 0.95rem;
+        color: #374151;
+    }
+
+        .textarea-with-icon textarea:focus {
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+            border-color: var(--police-primary);
+            outline: none;
+        }
+
+/* --- COLORES DE SECCIONES --- */
+.text-purple {
+    color: var(--color-purple) !important;
 }
 
-body {
-  margin-bottom: 60px;
+.border-purple {
+    border-color: var(--color-purple) !important;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+.text-orange {
+    color: var(--color-orange) !important;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+.border-orange {
+    border-color: var(--color-orange) !important;
+}
+
+.text-green {
+    color: var(--color-green) !important;
+}
+
+.border-green {
+    border-color: var(--color-green) !important;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* --- BOTONES Y ENLACES --- */
+.btn-police {
+    background-color: var(--police-primary);
+    color: white;
+    border-radius: var(--radius-input);
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    border: none;
+}
+
+    .btn-police:hover {
+        background-color: var(--police-hover);
+        color: white;
+    }
+
+.btn-public {
+    background-color: var(--public-primary);
+    color: white;
+    border-radius: var(--radius-input);
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    border: none;
+}
+
+    .btn-public:hover {
+        background-color: var(--public-hover);
+        color: white;
+    }
+
+.link-back {
+    text-decoration: none;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+    .link-back:hover {
+        color: var(--police-primary);
+        text-decoration: underline;
+    }
+
+    .link-back i {
+        margin-right: 0.5rem;
+    }
+
+/* --- UTILIDADES --- */
+.form-label {
+    font-weight: 500;
+    color: #4b5563;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.field-validation-error {
+    display: block;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    color: #dc3545;
+}
+
+.text-police {
+    color: var(--police-primary) !important;
+}
+
+.text-public {
+    color: var(--public-primary) !important;
+}
+
+/* --- FONDO PARA LOGIN/HOME/REGISTRO --- */
+.bg-app {
+    background-color: #172554;
+    background-image: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+    .bg-app .container {
+        margin: auto;
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+        max-width: 1400px;
+        width: 100%;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+
+.icon-circle-box {
+    width: 100px;
+    height: 100px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-bottom: 1.5rem;
+    font-size: 2.5rem;
 }

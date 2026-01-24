@@ -1,47 +1,110 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SistemaCelularesPolicia</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - Sistema PNP</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/SistemaCelularesPolicia.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SistemaCelularesPolicia</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+
+    <header class="@(User.IsInRole("Policia") ? "bg-police" : "bg-public") text-white py-3 shadow-sm">
+        <div class="container d-flex justify-content-between align-items-center">
+
+            <div class="d-flex align-items-center">
+                <i class="bi @(User.IsInRole("Policia") ? "bi-shield-check" : "bi-search") fs-2 me-3"></i>
+                <div>
+                    <h1 class="h5 fw-bold mb-0">
+                        @(User.IsInRole("Policia") ? "Portal Policial" : "Portal de Consulta Pública")
+                    </h1>
+                    <small class="opacity-75 d-block" style="line-height: 1;">
+                        @(User.IsInRole("Policia") ? "Registro de Celulares Incautados" : "Consulta de Celulares Recuperados")
+                    </small>
                 </div>
             </div>
-        </nav>
+
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-end d-none d-md-block">
+                        <div class="fw-bold small">@User.Identity.Name</div>
+                        <div class="small opacity-75">@User.FindFirst(ClaimTypes.Email)?.Value</div>
+                    </div>
+
+                    <form asp-controller="Account" asp-action="Salir" method="post" class="m-0">
+                        <button type="submit" class="btn btn-sm btn-outline-light d-flex align-items-center gap-2 px-3">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="bg-white border-bottom shadow-sm mb-4">
+            <div class="container">
+                <ul class="nav nav-tabs border-0 pt-2">
+
+                    @if (User.IsInRole("Policia"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link px-4 py-3 @(ViewContext.RouteData.Values["Controller"].ToString() == "Policia" && ViewContext.RouteData.Values["Action"].ToString() == "Registrar" ? "active fw-bold text-police border-bottom border-3 border-primary" : "text-muted")"
+                               asp-controller="Policia" asp-action="Registrar">
+                                <i class="bi bi-plus-lg me-2"></i> Registrar Celular
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-4 py-3 @(ViewContext.RouteData.Values["Controller"].ToString() == "Policia" && ViewContext.RouteData.Values["Action"].ToString() == "VerRegistros" ? "active fw-bold text-police border-bottom border-3 border-primary" : "text-muted")"
+                               asp-controller="Policia" asp-action="VerRegistros">
+                                <i class="bi bi-list-ul me-2"></i> Ver Registros
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-4 py-3 @(ViewContext.RouteData.Values["Controller"].ToString() == "Policia" && ViewContext.RouteData.Values["Action"].ToString() == "Dashboard" ? "active fw-bold text-police border-bottom border-3 border-primary" : "text-muted")"
+                               asp-controller="Policia" asp-action="Dashboard">
+                                <i class="bi bi-clipboard-data-fill me-2"></i> Dashboards
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link px-4 py-3 @(ViewContext.RouteData.Values["Controller"].ToString() == "Consulta" ? "active fw-bold text-public border-bottom border-3 border-success" : "text-muted")"
+                               asp-controller="Consulta" asp-action="Index">
+                                <i class="bi bi-search me-2"></i> Consultar IMEI
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-4 py-3 text-muted" href="#">
+                                <i class="bi bi-clock-history me-2"></i> Historial
+                            </a>
+                        </li>
+                    }
+
+                </ul>
+            </div>
+        </div>
+    }
+
+    <div class="container pb-5">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - SistemaCelularesPolicia - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="footer mt-auto">
+        <div class="container text-center small">
+            &copy; 2025 - Sistema de Registro y Consulta de Celulares - Policía Nacional del Perú
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
