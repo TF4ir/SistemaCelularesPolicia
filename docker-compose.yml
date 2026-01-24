@@ -1,0 +1,17 @@
+﻿services:
+  web:
+    build: .
+    container_name: sistema_celulares_web
+    ports:
+      - "5001:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sql;Database=SistemaCelularesIncautados;User Id=sa;Password=TuPassword123;TrustServerCertificate=True;
+
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql
+    ports:
+      - "1434:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=TuPassword123

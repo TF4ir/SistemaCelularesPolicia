@@ -1,7 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using SistemaCelularesPolicia.Recursos.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
 builder.Services.AddControllersWithViews();
+
+// Agregar aquí el DbContext:
+builder.Services.AddDbContext<SisCeluPoliC>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
 
 var app = builder.Build();
 
