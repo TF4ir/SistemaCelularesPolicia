@@ -12,5 +12,6 @@ namespace SistemaCelularesPolicia.Servicios.Interfaces
         Task<PersonalPolicial> ObtenerPorId(int id);
         Task ActualizarCodigosRespaldo(int idPolicial, string nuevosCodigos);
         Task RegistrarUsoCodigo2fa(int idPolicial, string codigoUsado);
+        Task<bool> ActualizarPolicia(PersonalPolicial policia);
     }
 }

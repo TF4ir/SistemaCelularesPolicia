@@ -39,5 +39,18 @@ namespace SistemaCelularesPolicia.Servicios.Repository
             return await _context.UsuarioPublicos
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
+        public async Task<bool> ActualizarUsuario(UsuarioPublico usuario)
+        {
+            try
+            {
+                _context.UsuarioPublicos.Update(usuario);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }

@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SistemaCelularesPolicia.Models;
 
 public partial class PersonalPolicial
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int IdPolicial { get; set; }
 
     public string CodigoPolicial { get; set; } = null!;
@@ -56,6 +60,15 @@ public partial class PersonalPolicial
     public string? TokenRecordar { get; set; }
 
     public string? ContrasenaHash { get; set; }
+
+    [Column("cod_verificacion_email")]
+    public string? CodVerificacionEmail { get; set; }
+
+    [Column("fecha_expiracion_cod")]
+    public DateTime? FechaExpiracionCod { get; set; }
+
+    [Column("email_verificado")]
+    public bool? EmailVerificado { get; set; }
 
     public virtual ICollection<Celular> Celulars { get; set; } = new List<Celular>();
 

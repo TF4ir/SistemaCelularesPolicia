@@ -30,6 +30,7 @@ builder.Services.AddScoped<ICelular, CelularRepo>();
 
 builder.Services.AddScoped<IPersonalPolicial, PersonalPolicialRepo>();
 
+builder.Services.AddScoped<IEmail, EmailRepo>();
 
 var app = builder.Build();
 

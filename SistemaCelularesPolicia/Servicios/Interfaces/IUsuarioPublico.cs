@@ -12,5 +12,7 @@ namespace SistemaCelularesPolicia.Servicios.Interfaces
         // Método para obtener usuario por email (para el login futuro)
         Task<UsuarioPublico> ObtenerPorEmail(string email);
 
+        Task<bool> ActualizarUsuario(UsuarioPublico usuario);
+
     }
 }

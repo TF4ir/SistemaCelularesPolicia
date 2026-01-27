@@ -79,5 +79,19 @@ namespace SistemaCelularesPolicia.Servicios.Repository
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<bool> ActualizarPolicia(PersonalPolicial policia)
+        {
+            try
+            {
+                _context.PersonalPolicials.Update(policia);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

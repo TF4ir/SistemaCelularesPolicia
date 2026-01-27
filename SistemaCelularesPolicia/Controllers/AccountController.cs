@@ -14,12 +14,14 @@ namespace SistemaCelularesPolicia.Controllers
     {
         private readonly IUsuarioPublico _usuarioService;
         private readonly IPersonalPolicial _personalService;
+        private readonly IEmail _emailService;
 
         // Inyectamos el repositorio
-        public AccountController(IUsuarioPublico usuarioService, IPersonalPolicial personalService)
+        public AccountController(IUsuarioPublico usuarioService, IPersonalPolicial personalService, IEmail emailservice)
         {
             _usuarioService = usuarioService;
             _personalService = personalService;
+            _emailService = emailservice;
         }
 
         // --- VISTAS GET (Pantallas) ---
@@ -43,20 +45,20 @@ namespace SistemaCelularesPolicia.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterPublic(RegisterPublicoViewModel viewModel)
         {
-            // 1. VALIDACIÓN AUTOMÁTICA
-            if (!ModelState.IsValid)
-            {
-                return View("RegisterPublico", viewModel);
-            }
+            // VALIDACIÓN AUTOMÁTICA
+            if (!ModelState.IsValid) return View("RegisterPublico", viewModel);
 
-            // 2. VALIDAR DUPLICADOS (Lógica de Negocio)
+            // VALIDAR DUPLICADOS (Lógica de Negocio)
             if (await _usuarioService.ExisteUsuario(viewModel.Email, viewModel.Dni))
             {
                 ModelState.AddModelError("", "El correo o DNI ya están registrados en el sistema.");
                 return View("RegisterPublico", viewModel);
             }
 
-            // 3. MAPEO (ViewModel -> Entidad BD)
+            // Generar Código de 6 dígitos para la verificación del email
+            string codigo = new Random().Next(100000, 999999).ToString();
+
+            // MAPEO (ViewModel -> Entidad BD)
             var nuevoUsuario = new UsuarioPublico
             {
                 Dni = viewModel.Dni,
@@ -74,22 +76,85 @@ namespace SistemaCelularesPolicia.Controllers
                 Activo = true,
                 FechaRegistro = DateTime.Now,
                 EmailVerificado = false,
-                UltimoAcceso = DateTime.Now
+                UltimoAcceso = DateTime.Now,
+
+                // CÓDIGO Email:
+                CodVerificacionEmail = codigo,
+                FechaExpiracionCod = DateTime.Now.AddMinutes(10) // Expira en 10 min
             };
 
-            // 4. GUARDAR
+            // GUARDAR
             bool resultado = await _usuarioService.RegistrarUsuario(nuevoUsuario);
 
             if (resultado)
             {
-                TempData["MensajeExito"] = "Cuenta creada correctamente. ¡Bienvenido!";
-                return RedirectToAction("LoginPublico");
+                // 1. Enviar el correo
+                await _emailService.EnviarCorreoVerificacion(nuevoUsuario.Email, nuevoUsuario.Nombres, codigo);
+
+                // 2. Avisar al usuario que revise su bandeja
+                TempData["MensajeInfo"] = "Registro iniciado. Hemos enviado un código a su correo.";
+
+                // 3. Redirigir a la pantalla de poner el código
+                // Pasamos el email como parámetro para que la vista sepa a quién validar
+                return RedirectToAction("VerificarCodigo", new { email = viewModel.Email });
             }
             else
             {
                 ModelState.AddModelError("", "Ocurrió un error al registrarse. Intente nuevamente.");
                 return View("RegisterPublico", viewModel);
             }
+        }
+
+        [HttpGet]
+        public IActionResult VerificarCodigo(string email)
+        {
+            ViewBag.Email = email;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerificarCodigo(string email, string codigo)
+        {
+            // 1. Buscar usuario por email
+            var usuario = await _usuarioService.ObtenerPorEmail(email);
+
+            if (usuario == null)
+            {
+                ViewBag.Error = "Usuario no encontrado.";
+                return View();
+            }
+
+            // 2. Validar si ya está verificado
+            if (usuario.EmailVerificado == true)
+            {
+                return RedirectToAction("LoginPublico");
+            }
+
+            // 3. VALIDAR CÓDIGO Y EXPIRACIÓN
+            if (usuario.CodVerificacionEmail != codigo)
+            {
+                ViewBag.Error = "Código incorrecto.";
+                ViewBag.Email = email;
+                return View();
+            }
+
+            if (usuario.FechaExpiracionCod < DateTime.Now)
+            {
+                ViewBag.Error = "El código ha expirado. Solicite uno nuevo.";
+                ViewBag.Email = email;
+                return View();
+            }
+
+            // 4. ÉXITO: Activar cuenta
+            usuario.EmailVerificado = true;
+            usuario.CodVerificacionEmail = null; // Limpiar código por seguridad
+            usuario.FechaExpiracionCod = null;
+
+            await _usuarioService.ActualizarUsuario(usuario);
+
+            TempData["MensajeExito"] = "Cuenta verificada exitosamente. Ya puede iniciar sesión.";
+            return RedirectToAction("LoginPublico");
         }
 
         // --- LOGIN PÚBLICO (POST) ---
@@ -110,6 +175,12 @@ namespace SistemaCelularesPolicia.Controllers
                     {
                         ViewBag.Error = "Su cuenta está inactiva.";
                         return View();
+                    }
+
+                    if (usuario.EmailVerificado == false)
+                    {
+                        ViewBag.Error = "Su cuenta no está verificada. Revise su correo.";
+                        return View("VerificarCodigo");
                     }
 
                     // --- CREAR LA IDENTIDAD (COOKIE) ---
@@ -330,25 +401,20 @@ namespace SistemaCelularesPolicia.Controllers
         public async Task<IActionResult> RegisterPolice(RegisterPoliciaViewModel viewModel)
         {
             // 1. VALIDACIÓN AUTOMÁTICA (Data Annotations)
-            // Aquí se valida: CIP de 8 dígitos, contraseñas iguales, campos requeridos, etc.
-            if (!ModelState.IsValid)
-            {
-                // Si hay errores, devolvemos la vista y el ViewModel para mostrar los mensajes rojos
-                return View("RegisterPolicia", viewModel);
-            }
+            if (!ModelState.IsValid) return View("RegisterPolicia", viewModel);
 
             // 2. VALIDAR DUPLICADOS (Lógica de Negocio)
-            // Verificamos si el CIP, DNI o Email ya existen en la BD
             if (await _personalService.ExistePolicia(viewModel.CodigoPolicial, viewModel.Dni, viewModel.EmailInstitucional))
             {
-                // Usamos ModelState en lugar de ViewBag para que el error se vea más integrado
+
                 ModelState.AddModelError("", "El Código Policial, DNI o Email ya están registrados en el sistema.");
                 return View("RegisterPolicia", viewModel);
             }
 
+            string codigo = new Random().Next(100000, 999999).ToString();
+
             // 3. MAPEO (ViewModel -> Entidad de BD)
-            // Pasamos los datos limpios del formulario a la estructura real de la base de datos
-            var nuevaEntidad = new PersonalPolicial
+            var nuevoPolicia = new PersonalPolicial
             {
                 // Datos del formulario
                 CodigoPolicial = viewModel.CodigoPolicial,
@@ -365,24 +431,80 @@ namespace SistemaCelularesPolicia.Controllers
                 Activo = true,
                 FechaRegistro = DateTime.Now,
                 DosFactoresActivo = false,
-                IntentosFallidos2fa = 0
+                IntentosFallidos2fa = 0,
+
+                // Código de verificación de email
+                EmailVerificado = false,
+                CodVerificacionEmail = codigo,
+                FechaExpiracionCod = DateTime.Now.AddMinutes(10)
             };
 
             // 4. GUARDAR EN BASE DE DATOS
-            bool resultado = await _personalService.RegistrarPolicia(nuevaEntidad);
+            bool resultado = await _personalService.RegistrarPolicia(nuevoPolicia);
 
             if (resultado)
             {
-                // ÉXITO
-                TempData["MensajeExito"] = "Registro exitoso. Por favor inicie sesión.";
-                return RedirectToAction("LoginPolicia");
+                // 1. Enviar Correo
+                await _emailService.EnviarCorreoVerificacion(nuevoPolicia.EmailInstitucional, nuevoPolicia.Nombres, codigo);
+
+                // 2. Redirigir a Verificación
+                TempData["MensajeInfo"] = "Revise su correo institucional para verificar su cuenta.";
+                return RedirectToAction("VerificarCodigoPolicia", new { email = viewModel.EmailInstitucional });
             }
             else
             {
-                // ERROR DE BASE DE DATOS
-                ModelState.AddModelError("", "Ocurrió un error interno al intentar registrar. Intente nuevamente.");
+                ModelState.AddModelError("", "Error al registrar.");
                 return View("RegisterPolicia", viewModel);
             }
+        }
+
+        [HttpGet]
+        public IActionResult VerificarCodigoPolicia(string email)
+        {
+            ViewBag.Email = email;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerificarCodigoPolicia(string email, string codigo)
+        {
+            // 1. Buscar Policía
+            var policia = await _personalService.ObtenerPorEmailOCodigo(email);
+
+            if (policia == null)
+            {
+                ViewBag.Error = "Usuario no encontrado.";
+                ViewBag.Email = email;
+                return View();
+            }
+
+            // 2. Validaciones
+            if (policia.EmailVerificado == true) return RedirectToAction("LoginPolicia");
+
+            if (policia.CodVerificacionEmail != codigo)
+            {
+                ViewBag.Error = "Código incorrecto.";
+                ViewBag.Email = email;
+                return View();
+            }
+
+            if (policia.FechaExpiracionCod < DateTime.Now)
+            {
+                ViewBag.Error = "El código ha expirado.";
+                ViewBag.Email = email;
+                return View();
+            }
+
+            // 3. Activar (UPDATE)
+            policia.EmailVerificado = true;
+            policia.CodVerificacionEmail = null;
+            policia.FechaExpiracionCod = null;
+
+            await _personalService.ActualizarPolicia(policia);
+
+            TempData["MensajeExito"] = "Cuenta verificada. Inicie sesión.";
+            return RedirectToAction("LoginPolicia");
         }
     }
 }

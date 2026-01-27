@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SistemaCelularesPolicia.Models;
 
 public partial class UsuarioPublico
 {
+    [Key] // Marca esto como clave primaria
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // <--- Dice: "La BD genera este valor"
     public int IdUsuarioPublico { get; set; }
 
     public string Dni { get; set; } = null!;
@@ -30,6 +34,12 @@ public partial class UsuarioPublico
     public DateTime? UltimoAcceso { get; set; }
 
     public bool? EmailVerificado { get; set; }
+
+    [Column("cod_verificacion_email")]
+    public string? CodVerificacionEmail { get; set; }
+
+    [Column("fecha_expiracion_cod")]
+    public DateTime? FechaExpiracionCod { get; set; }
 
     public virtual ICollection<ConsultaPublico> ConsultaPublicos { get; set; } = new List<ConsultaPublico>();
 }

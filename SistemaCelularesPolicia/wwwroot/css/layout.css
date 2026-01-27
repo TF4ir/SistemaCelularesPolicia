@@ -2,10 +2,10 @@
 
 :root {
     /* --- PALETA DE COLORES GLOBAL --- */
-    --police-primary: #1e3a8a;
-    --police-hover: #172554;
-    --public-primary: #15803d;
-    --public-hover: #14532d;
+    --police-primary: #15803d;
+    --police-hover: #14532d;
+    --public-primary: #1e3a8a;
+    --public-hover: #172554;
     --color-purple: #7c3aed;
     --color-orange: #ea580c;
     --color-green: #059669;

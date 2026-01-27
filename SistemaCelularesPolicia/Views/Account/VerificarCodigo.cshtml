@@ -1,0 +1,66 @@
+﻿@{
+    Layout = null;
+    string email = ViewBag.Email as string;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Verificar Cuenta</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/layout.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="bg-app">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card border-0 shadow-lg rounded-4 my-5">
+                    <div class="card-body p-5 text-center">
+
+                        <div class="icon-circle-box bg-success-subtle text-public mb-3 d-inline-flex p-3 rounded-circle">
+                            <i class="bi bi-envelope-check fs-1"></i>
+                        </div>
+
+                        <h3 class="fw-bold text-public mb-2">Verificar Correo</h3>
+                        <p class="text-muted mb-4">
+                            Hemos enviado un código de 6 dígitos a: <br />
+                            <strong>@email</strong>
+                        </p>
+
+                        @if (ViewBag.Error != null)
+                        {
+                            <div class="alert alert-danger small">@ViewBag.Error</div>
+                        }
+
+                        <form asp-action="VerificarCodigo" method="post">
+                            <input type="hidden" name="email" value="@email" />
+
+                            <div class="mb-4">
+                                <label class="form-label text-secondary fw-bold small text-start w-100">Código de Verificación</label>
+                                <div class="input-with-icon position-relative">
+                                    <i class="bi bi-key position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                    <input name="codigo" class="form-control ps-5 text-center fw-bold fs-5 tracking-widest"
+                                           placeholder="000000" maxlength="6" required style="letter-spacing: 5px;" />
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-public w-100 py-3 fw-bold shadow-sm">
+                                Verificar Cuenta
+                            </button>
+                        </form>
+
+                        <div class="mt-4">
+                            <small class="text-muted">¿No recibiste el código?</small><br>
+                            <a href="#" class="text-public fw-bold text-decoration-none small">Reenviar código</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
