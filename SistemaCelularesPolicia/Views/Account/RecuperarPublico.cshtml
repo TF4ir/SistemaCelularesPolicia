@@ -1,0 +1,72 @@
+﻿@model SistemaCelularesPolicia.Models.ViewModels.SolicitarRecuperacionViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Recuperar Contraseña</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/layout.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="bg-app">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card border-0 shadow-lg rounded-4 my-5">
+                    <div class="card-body p-5">
+
+                        <div class="text-center mb-4">
+                            <div class="icon-circle-box bg-success-subtle text-public mb-3 d-inline-flex p-3 rounded-circle">
+                                <i class="bi bi-key fs-1"></i>
+                            </div>
+                            <h3 class="fw-bold text-public">Recuperar Acceso</h3>
+                            <p class="text-muted small">Ingrese su correo para recibir un código de recuperación.</p>
+                        </div>
+
+                        @if (TempData["MensajeInfo"] != null)
+                        {
+                            <div class="alert alert-info small shadow-sm border-0">
+                                <i class="bi bi-info-circle me-2"></i> @TempData["MensajeInfo"]
+                            </div>
+                        }
+
+                        <form asp-action="RecuperarPublico" method="post">
+                            <div class="mb-4">
+                                <label asp-for="Email" class="form-label text-secondary fw-bold small">Correo Electrónico</label>
+                                <div class="input-with-icon position-relative">
+                                    <i class="bi bi-envelope position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                    <input asp-for="Email" class="form-control ps-5" placeholder="correo@ejemplo.com" />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-public w-100 py-3 fw-bold shadow-sm">
+                                Enviar Código
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <a asp-action="LoginPublico" class="text-decoration-none small text-muted fw-bold">
+                                <i class="bi bi-arrow-left me-1"></i> Volver al Login
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+</body>
+</html>

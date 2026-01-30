@@ -228,6 +228,80 @@ namespace SistemaCelularesPolicia.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [HttpGet]
+        public IActionResult RecuperarPublico()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecuperarPublico(SolicitarRecuperacionViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            // 1. Buscar si el correo existe
+            var usuario = await _usuarioService.ObtenerPorEmail(model.Email);
+
+            if (usuario == null)
+            {
+                TempData["MensajeInfo"] = "Si el correo existe, se han enviado las instrucciones.";
+                return View(model);
+            }
+
+            // 2. Generar Código y Guardar en BD (Update)
+            string codigo = new Random().Next(100000, 999999).ToString();
+
+            usuario.CodVerificacionEmail = codigo;
+            usuario.FechaExpiracionCod = DateTime.Now.AddMinutes(15);
+
+            await _usuarioService.ActualizarUsuario(usuario);
+
+            // 3. Enviar Correo
+            await _emailService.EnviarCorreoVerificacion(usuario.Email, usuario.Nombres, codigo);
+
+            // 4. Redirigir al Paso 2 (Llevando el email)
+            return RedirectToAction("CambiarPasswordPublico", new { email = model.Email });
+        }
+
+        [HttpGet]
+        public IActionResult CambiarPasswordPublico(string email)
+        {
+            // Preparamos el modelo con el email recibido para que el usuario no tenga que escribirlo de nuevo
+            var model = new RestablecerPasswordViewModel { Email = email };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarPasswordPublico(RestablecerPasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var usuario = await _usuarioService.ObtenerPorEmail(model.Email);
+
+            // Validaciones
+            if (usuario == null ||
+                usuario.CodVerificacionEmail != model.Codigo ||
+                usuario.FechaExpiracionCod < DateTime.Now)
+            {
+                ModelState.AddModelError("", "El código es inválido o ha expirado.");
+                return View(model);
+            }
+
+            // CAMBIO DE CONTRASEÑA
+            usuario.ContraseñaHash = Utilidades.EncriptarClave(model.NuevaPassword);
+
+            // Limpiamos el código usado
+            usuario.CodVerificacionEmail = null;
+            usuario.FechaExpiracionCod = null;
+
+            await _usuarioService.ActualizarUsuario(usuario);
+
+            TempData["MensajeExito"] = "Contraseña actualizada. Inicie sesión.";
+            return RedirectToAction("LoginPublico");
+        }
+
         // --- LOGIN POLICIA ---
         [HttpGet]
         public IActionResult LoginPoliciaVerification()
@@ -504,6 +578,80 @@ namespace SistemaCelularesPolicia.Controllers
             await _personalService.ActualizarPolicia(policia);
 
             TempData["MensajeExito"] = "Cuenta verificada. Inicie sesión.";
+            return RedirectToAction("LoginPolicia");
+        }
+
+        [HttpGet]
+        public IActionResult RecuperarPolicia()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecuperarPolicia(SolicitarRecuperacionViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            // 1. Buscar si el correo existe
+            var policia = await _personalService.ObtenerPorEmailOCodigo(model.Email);
+
+            if (policia == null)
+            {
+                TempData["MensajeInfo"] = "Si el correo existe, se han enviado las instrucciones.";
+                return View(model);
+            }
+
+            // 2. Generar Código y Guardar en BD (Update)
+            string codigo = new Random().Next(100000, 999999).ToString();
+
+            policia.CodVerificacionEmail = codigo;
+            policia.FechaExpiracionCod = DateTime.Now.AddMinutes(15);
+
+            await _personalService.ActualizarPolicia(policia);
+
+            // 3. Enviar Correo
+            await _emailService.EnviarCorreoVerificacion(policia.EmailInstitucional, policia.Nombres, codigo);
+
+            // 4. Redirigir al Paso 2 (Llevando el email)
+            return RedirectToAction("CambiarPasswordPolicia", new { email = model.Email });
+        }
+
+        [HttpGet]
+        public IActionResult CambiarPasswordPolicia(string email)
+        {
+            // Preparamos el modelo con el email recibido para que el usuario no tenga que escribirlo de nuevo
+            var model = new RestablecerPasswordViewModel { Email = email };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarPasswordPolicia(RestablecerPasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var policia = await _personalService.ObtenerPorEmailOCodigo(model.Email);
+
+            // Validaciones
+            if (policia == null ||
+                policia.CodVerificacionEmail != model.Codigo ||
+                policia.FechaExpiracionCod < DateTime.Now)
+            {
+                ModelState.AddModelError("", "El código es inválido o ha expirado.");
+                return View(model);
+            }
+
+            // CAMBIO DE CONTRASEÑA
+            policia.ContrasenaHash = Utilidades.EncriptarClave(model.NuevaPassword);
+
+            // Limpiamos el código usado
+            policia.CodVerificacionEmail = null;
+            policia.FechaExpiracionCod = null;
+
+            await _personalService.ActualizarPolicia(policia);
+
+            TempData["MensajeExito"] = "Contraseña actualizada. Inicie sesión.";
             return RedirectToAction("LoginPolicia");
         }
     }

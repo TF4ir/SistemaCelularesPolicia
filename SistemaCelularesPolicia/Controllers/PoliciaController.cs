@@ -141,7 +141,7 @@ namespace SistemaCelularesPolicia.Controllers
                 if (resultado)
                 {
                     TempData["Mensaje"] = "Datos del celular corregidos correctamente.";
-                    return RedirectToAction("Index"); // Volver a la lista
+                    return RedirectToAction("VerRegistros");
                 }
             }
 

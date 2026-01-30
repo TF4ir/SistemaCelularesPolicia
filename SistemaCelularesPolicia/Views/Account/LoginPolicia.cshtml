@@ -46,6 +46,12 @@
                                     <i class="bi bi-lock"></i>
                                     <input type="password" name="password" class="form-control" placeholder="••••••••" required>
                                 </div>
+                                <div class="text-end mt-2">
+                                    <a asp-action="RecuperarPolicia" asp-controller="Account"
+                                       class="text-decoration-none small text-public fw-bold">
+                                        ¿Olvidaste tu contraseña?
+                                    </a>
+                                </div>
                             </div>
 
                             @if (ViewBag.Error != null)

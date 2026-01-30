@@ -25,7 +25,7 @@ public partial class PersonalPolicial
 
     public string? DepartamentoPolicial { get; set; }
 
-    public string? EmailInstitucional { get; set; }
+    public string? EmailInstitucional { get; set; } = null!;
 
     public string? TelefonoContacto { get; set; }
 
@@ -59,7 +59,7 @@ public partial class PersonalPolicial
 
     public string? TokenRecordar { get; set; }
 
-    public string? ContrasenaHash { get; set; }
+    public string? ContrasenaHash { get; set; } = null!;
 
     [Column("cod_verificacion_email")]
     public string? CodVerificacionEmail { get; set; }
