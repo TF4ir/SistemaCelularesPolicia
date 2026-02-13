@@ -9,10 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services
 builder.Services.AddControllersWithViews();
 
-// DbContext:
+//var connectionString = "Server=tcp:server-pnp-sicir-2.database.windows.net,1433;Initial Catalog=bd-sicir;Persist Security Info=False;User ID=adminpnp;Password=Fabrizio#04;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;";
+var connectionString = "Server=localhost\\SQL2025;Database=SistemaCelularesIncautados;Integrated Security=True;TrustServerCertificate=True;Encrypt=False;";
+
 builder.Services.AddDbContext<SisCeluPoliC>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+    options.UseSqlServer(connectionString));
 
 // 2. CONFIGURAR LA AUTENTICACIÓN
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

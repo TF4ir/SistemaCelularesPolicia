@@ -2,7 +2,6 @@
 {
     public class DashboardViewModel
     {
-        // 1. Tarjetas Superiores
         public int TotalRegistrados { get; set; }
         public int TotalIncautados { get; set; }
         public int TotalRecuperados { get; set; }

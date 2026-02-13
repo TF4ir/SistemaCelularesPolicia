@@ -92,7 +92,7 @@ namespace SistemaCelularesPolicia.Servicios.Repository
                     IdCelular = celular.IdCelular,
                     SituacionAnterior = null,
                     SituacionNueva = celular.Situacion,
-                    FechaCambio = DateTime.Now,
+                    FechaCambio = DateTime.UtcNow,
                     IdPolicialCambio = celular.IdPolicialRegistro,
                     Observaciones = "Registro inicial del operativo."
                 };
@@ -149,7 +149,7 @@ namespace SistemaCelularesPolicia.Servicios.Repository
             // existente.FechaIncautacion
             // existente.IdPolicialRegistro
 
-            existente.FechaActualizacion = DateTime.Now; // Marcar cuándo se editó
+            existente.FechaActualizacion = DateTime.UtcNow; // Marcar cuándo se editó
 
             try
             {
@@ -176,7 +176,7 @@ namespace SistemaCelularesPolicia.Servicios.Repository
 
                 // Actualizar Celular
                 celular.Situacion = nuevaSituacion;
-                celular.FechaActualizacion = DateTime.Now;
+                celular.FechaActualizacion = DateTime.UtcNow;
 
                 // Insertar Histórico
                 var historico = new HistoricoSituacionCelular
@@ -184,7 +184,7 @@ namespace SistemaCelularesPolicia.Servicios.Repository
                     IdCelular = celular.IdCelular,
                     SituacionAnterior = situacionAnterior,
                     SituacionNueva = nuevaSituacion,
-                    FechaCambio = DateTime.Now,
+                    FechaCambio = DateTime.UtcNow,
                     IdPolicialCambio = idPolicia,
                     Observaciones = justificacion // Ej: "Devolución al dueño según acta..."
                 };

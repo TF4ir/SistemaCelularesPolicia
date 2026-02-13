@@ -38,7 +38,7 @@ namespace SistemaCelularesPolicia.Controllers
             {
                 IdUsuarioPublico = userId,
                 ImeiConsultado = imei,
-                FechaConsulta = DateTime.Now,
+                FechaConsulta = DateTime.UtcNow,
                 IpConsulta = HttpContext.Connection.RemoteIpAddress?.ToString(),
                 UserAgent = Request.Headers["User-Agent"].ToString()
             };

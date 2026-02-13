@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SistemaCelularesPolicia.Models;
 using SistemaCelularesPolicia.Models.ViewModels;
 using SistemaCelularesPolicia.Recursos;
+using SistemaCelularesPolicia.Recursos.Data;
 using SistemaCelularesPolicia.Servicios.Interfaces;
 using System.Security.Claims;
 
@@ -15,13 +17,15 @@ namespace SistemaCelularesPolicia.Controllers
         private readonly IUsuarioPublico _usuarioService;
         private readonly IPersonalPolicial _personalService;
         private readonly IEmail _emailService;
+        private readonly SisCeluPoliC _context;
 
         // Inyectamos el repositorio
-        public AccountController(IUsuarioPublico usuarioService, IPersonalPolicial personalService, IEmail emailservice)
+        public AccountController(IUsuarioPublico usuarioService, IPersonalPolicial personalService, IEmail emailservice, SisCeluPoliC context)
         {
             _usuarioService = usuarioService;
             _personalService = personalService;
             _emailService = emailservice;
+            _context = context;
         }
 
         // --- VISTAS GET (Pantallas) ---
@@ -36,9 +40,38 @@ namespace SistemaCelularesPolicia.Controllers
         [HttpGet]
         public IActionResult RegisterPublico() => View();
 
+        // --- REGISTRO POLICÍA (GET) ---
         [HttpGet]
-        public IActionResult RegisterPolicia() => View();
+        public async Task<IActionResult> RegisterPolicia()
+        {
+            // Cargar lista de Provincias para el filtro
+            // Usamos Distinct() para que no se repita "HUANCAYO" 20 veces
+            ViewBag.Provincias = await _context.Dependencias
+                .Where(d => d.Activa == true)
+                .Select(d => d.Provincia)
+                .Distinct()
+                .OrderBy(p => p)
+                .ToListAsync();
 
+            return View();
+        }
+
+        // --- API PARA CARGAR UNIDADES (AJAX) ---
+        [HttpGet]
+        public async Task<JsonResult> ObtenerUnidadesPorProvincia(string provincia)
+        {
+            // Busca las dependencias que coincidan con la provincia seleccionada
+            var unidades = await _context.Dependencias
+                .Where(d => d.Provincia == provincia && d.Activa == true)
+                .OrderBy(d => d.Nombre)
+                .Select(d => new {
+                    valor = d.Nombre,
+                    texto = d.Nombre
+                })
+                .ToListAsync();
+
+            return Json(unidades);
+        }
 
         // --- REGISTRO PÚBLICO (POST) ---
         [HttpPost]
@@ -74,13 +107,13 @@ namespace SistemaCelularesPolicia.Controllers
 
                 // Valores por defecto
                 Activo = true,
-                FechaRegistro = DateTime.Now,
+                FechaRegistro = DateTime.UtcNow,
                 EmailVerificado = false,
-                UltimoAcceso = DateTime.Now,
+                UltimoAcceso = DateTime.UtcNow,
 
                 // CÓDIGO Email:
                 CodVerificacionEmail = codigo,
-                FechaExpiracionCod = DateTime.Now.AddMinutes(10) // Expira en 10 min
+                FechaExpiracionCod = DateTime.UtcNow.AddMinutes(10) // Expira en 10 min
             };
 
             // GUARDAR
@@ -139,7 +172,7 @@ namespace SistemaCelularesPolicia.Controllers
                 return View();
             }
 
-            if (usuario.FechaExpiracionCod < DateTime.Now)
+            if (usuario.FechaExpiracionCod < DateTime.UtcNow)
             {
                 ViewBag.Error = "El código ha expirado. Solicite uno nuevo.";
                 ViewBag.Email = email;
@@ -253,7 +286,7 @@ namespace SistemaCelularesPolicia.Controllers
             string codigo = new Random().Next(100000, 999999).ToString();
 
             usuario.CodVerificacionEmail = codigo;
-            usuario.FechaExpiracionCod = DateTime.Now.AddMinutes(15);
+            usuario.FechaExpiracionCod = DateTime.UtcNow.AddMinutes(15);
 
             await _usuarioService.ActualizarUsuario(usuario);
 
@@ -283,7 +316,7 @@ namespace SistemaCelularesPolicia.Controllers
             // Validaciones
             if (usuario == null ||
                 usuario.CodVerificacionEmail != model.Codigo ||
-                usuario.FechaExpiracionCod < DateTime.Now)
+                usuario.FechaExpiracionCod < DateTime.UtcNow)
             {
                 ModelState.AddModelError("", "El código es inválido o ha expirado.");
                 return View(model);
@@ -393,7 +426,7 @@ namespace SistemaCelularesPolicia.Controllers
             // inmediatamente después de usar uno nuevo (B).
             if (policia.FechaUltimoCodigo.HasValue)
             {
-                var segundosDesdeUltimoUso = DateTime.Now.Subtract(policia.FechaUltimoCodigo.Value).TotalSeconds;
+                var segundosDesdeUltimoUso = DateTime.UtcNow.Subtract(policia.FechaUltimoCodigo.Value).TotalSeconds;
 
                 // 60 segundos es un buen balance (cubre la ventana actual y la anterior de tolerancia)
                 if (segundosDesdeUltimoUso < 60)
@@ -455,19 +488,47 @@ namespace SistemaCelularesPolicia.Controllers
             }
         }
 
-        // Método helper para no repetir código de cookie
+        // Método helper actualizado para Roles Dinámicos
         private async Task CrearCookieSesion(PersonalPolicial policia)
         {
+            // 1. Nombre del Rol (Usando IdRolNavigation)
+            // Justo antes de leer el nombre del rol:
+            var idRolNumerico = policia.IdRol;
+            System.Diagnostics.Debug.WriteLine($"---> EL ID EN LA BD ES: {idRolNumerico}");
+            string nombreRol = policia.IdRolNavigation?.NombreRol ?? "SinRol";
+
             var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, policia.Nombres),
+                    new Claim(ClaimTypes.Email, policia.EmailInstitucional ?? ""),
+                    new Claim("IdUsuario", policia.IdPolicial.ToString()),
+                    new Claim(ClaimTypes.Role, nombreRol)
+                };
+
+            // 2. Cargar Permisos
+            // Verificamos si el rol tiene la lista "IdPermisos" cargada
+            if (policia.IdRolNavigation != null && policia.IdRolNavigation.IdPermisos != null)
             {
-                new Claim(ClaimTypes.Name, policia.Nombres),
-                new Claim(ClaimTypes.Email, policia.EmailInstitucional),
-                new Claim("IdUsuario", policia.IdPolicial.ToString()),
-                new Claim(ClaimTypes.Role, "Policia")
-            };
+                // Recorremos directamente los permisos (no hay tabla intermedia visible)
+                foreach (var permiso in policia.IdRolNavigation.IdPermisos)
+                {
+                    // Agregamos el nombre del permiso (ej: "Celulares.Registro")
+                    claims.Add(new Claim("Permiso", permiso.NombrePermiso));
+                }
+            }
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTime.UtcNow.AddHours(8)
+            };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
         }
 
         [HttpPost]
@@ -503,14 +564,14 @@ namespace SistemaCelularesPolicia.Controllers
                 // Datos de seguridad y auditoría (El usuario no los controla)
                 ContrasenaHash = Utilidades.EncriptarClave(viewModel.Password), // Encriptamos la clave del VM
                 Activo = true,
-                FechaRegistro = DateTime.Now,
+                FechaRegistro = DateTime.UtcNow,
                 DosFactoresActivo = false,
                 IntentosFallidos2fa = 0,
 
                 // Código de verificación de email
                 EmailVerificado = false,
                 CodVerificacionEmail = codigo,
-                FechaExpiracionCod = DateTime.Now.AddMinutes(10)
+                FechaExpiracionCod = DateTime.UtcNow.AddMinutes(10)
             };
 
             // 4. GUARDAR EN BASE DE DATOS
@@ -563,7 +624,7 @@ namespace SistemaCelularesPolicia.Controllers
                 return View();
             }
 
-            if (policia.FechaExpiracionCod < DateTime.Now)
+            if (policia.FechaExpiracionCod < DateTime.UtcNow)
             {
                 ViewBag.Error = "El código ha expirado.";
                 ViewBag.Email = email;
@@ -606,7 +667,7 @@ namespace SistemaCelularesPolicia.Controllers
             string codigo = new Random().Next(100000, 999999).ToString();
 
             policia.CodVerificacionEmail = codigo;
-            policia.FechaExpiracionCod = DateTime.Now.AddMinutes(15);
+            policia.FechaExpiracionCod = DateTime.UtcNow.AddMinutes(15);
 
             await _personalService.ActualizarPolicia(policia);
 
@@ -636,7 +697,7 @@ namespace SistemaCelularesPolicia.Controllers
             // Validaciones
             if (policia == null ||
                 policia.CodVerificacionEmail != model.Codigo ||
-                policia.FechaExpiracionCod < DateTime.Now)
+                policia.FechaExpiracionCod < DateTime.UtcNow)
             {
                 ModelState.AddModelError("", "El código es inválido o ha expirado.");
                 return View(model);

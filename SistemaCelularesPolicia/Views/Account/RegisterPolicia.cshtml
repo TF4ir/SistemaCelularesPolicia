@@ -5,7 +5,7 @@
 }
 
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta name="viewport" content="width=device-width" />
     <title>Registro de Personal Policial</title>
@@ -14,11 +14,10 @@
     <link rel="stylesheet" href="~/css/layout.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <style>
-        /* Ajuste para que el cursor sobre el ojito parezca un botón */
-        .toggle-password {
-            cursor: pointer;
-            z-index: 10; /* Asegura que esté por encima del input */
-        }
+            .toggle-password {
+                cursor: pointer;
+                z-index: 10;
+            }
     </style>
 </head>
 <body class="bg-app">
@@ -33,7 +32,7 @@
                         </a>
 
                         <div class="text-center mb-5">
-                            <div class="icon-circle-box bg-primary-subtle text-police mb-3 d-inline-flex p-3 rounded-circle">
+                            <div class="icon-circle-box bg-success-subtle text-police mb-3 d-inline-flex p-3 rounded-circle">
                                 <i class="bi bi-shield-shaded fs-1"></i>
                             </div>
                             <h3 class="fw-bold text-police">Registro de Personal Policial</h3>
@@ -41,7 +40,6 @@
                         </div>
 
                         <form asp-action="RegisterPolice" method="post">
-
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger shadow-sm mb-4" role="alert"></div>
 
                             <div class="row g-4">
@@ -81,39 +79,63 @@
                                     <span asp-validation-for="Apellidos" class="text-danger small"></span>
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-12 mt-4 mb-2">
+                                    <h6 class="text-police border-bottom pb-2 fw-bold"><i class="bi bi-building me-2"></i>Asignación</h6>
+                                </div>
+
+                                <div class="col-md-12">
                                     <label asp-for="RangoGrado" class="form-label text-secondary fw-bold small">Rango/Grado <span class="text-danger">*</span></label>
                                     <div class="input-with-icon position-relative">
                                         <i class="bi bi-award position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                                         <select asp-for="RangoGrado" class="form-select ps-5">
                                             <option value="">Seleccione...</option>
-                                            <option value="Suboficial de Tercera">Suboficial de Tercera</option>
-                                            <option value="Suboficial de Segunda">Suboficial de Segunda</option>
-                                            <option value="Suboficial de Primera">Suboficial de Primera</option>
-                                            <option value="Capitán">Capitán</option>
-                                            <option value="Mayor">Mayor</option>
-                                            <option value="Comandante">Comandante</option>
-                                            <option value="Coronel">Coronel</option>
+                                            <option value="SUBOFICIAL DE TERCERA">SUBOFICIAL DE TERCERA</option>
+                                            <option value="SUBOFICIAL DE SEGUNDA">SUBOFICIAL DE SEGUNDA</option>
+                                            <option value="SUBOFICIAL DE PRIMERA">SUBOFICIAL DE PRIMERA</option>
+                                            <option value="SUBOFICIAL TECNICO DE TERCERA">SUBOFICIAL TECNICO DE TERCERA</option>
+                                            <option value="SUBOFICIAL TECNICO DE SEGUNDA">SUBOFICIAL TECNICO DE SEGUNDA</option>
+                                            <option value="SUBOFICIAL TECNICO DE PRIMERA">SUBOFICIAL TECNICO DE PRIMERA</option>
+                                            <option value="SUBOFICIAL BRIGADIER">SUBOFICIAL BRIGADIER</option>
+                                            <option value="SUBOFICIAL SUPERIOR">SUBOFICIAL SUPERIOR</option>
+                                            <option value="ALFEREZ">ALFEREZ</option>
+                                            <option value="TENIENTE">TENIENTE</option>
+                                            <option value="CAPITAN">CAPITAN</option>
+                                            <option value="MAYOR">MAYOR</option>
+                                            <option value="COMANDANTE">COMANDANTE</option>
+                                            <option value="CORONEL">CORONEL</option>
+                                            <option value="GENERAL">GENERAL</option>
                                         </select>
                                     </div>
                                     <span asp-validation-for="RangoGrado" class="text-danger small"></span>
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label asp-for="UnidadDependencia" class="form-label text-secondary fw-bold small">Unidad/Dependencia <span class="text-danger">*</span></label>
+                                    <label class="form-label text-police fw-bold small">1. Filtro Provincia</label>
+                                    <div class="input-with-icon position-relative">
+                                        <i class="bi bi-geo-alt position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                        <select id="ddlProvincia" class="form-select ps-5 border-success">
+                                            <option value="">Seleccione Provincia...</option>
+                                            @if (ViewBag.Provincias != null)
+                                            {
+                                                foreach (var prov in ViewBag.Provincias)
+                                                {
+                                                    <option value="@prov">@prov</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="UnidadDependencia" class="form-label text-police fw-bold small">2. Unidad Policial <span class="text-danger">*</span></label>
                                     <div class="input-with-icon position-relative">
                                         <i class="bi bi-building position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                                        <select asp-for="UnidadDependencia" class="form-select ps-5">
-                                            <option value="">Seleccione...</option>
-                                            <option value="Comisaría Central">Comisaría Central</option>
-                                            <option value="DIVINCRI">DIVINCRI</option>
-                                            <option value="DEPINCRI">DEPINCRI</option>
-                                            <option value="USE">USE</option>
+                                        <select asp-for="UnidadDependencia" id="ddlUnidad" class="form-select ps-5" required disabled>
+                                            <option value="">-- Primero elija Provincia --</option>
                                         </select>
                                     </div>
                                     <span asp-validation-for="UnidadDependencia" class="text-danger small"></span>
                                 </div>
-
                                 <div class="col-12">
                                     <label asp-for="EmailInstitucional" class="form-label text-secondary fw-bold small">Email Institucional <span class="text-danger">*</span></label>
                                     <div class="input-with-icon position-relative">
@@ -132,13 +154,15 @@
                                     <span asp-validation-for="TelefonoContacto" class="text-danger small"></span>
                                 </div>
 
+                                <div class="col-12 mt-4 mb-2">
+                                    <h6 class="text-police border-bottom pb-2 fw-bold"><i class="bi bi-lock me-2"></i>Seguridad de Acceso</h6>
+                                </div>
+
                                 <div class="col-md-6">
                                     <label asp-for="Password" class="form-label text-secondary fw-bold small">Contraseña <span class="text-danger">*</span></label>
                                     <div class="input-with-icon position-relative">
                                         <i class="bi bi-lock position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-
                                         <input asp-for="Password" id="txtPass" class="form-control ps-5 pe-5" placeholder="••••••••" />
-
                                         <button type="button" class="btn border-0 bg-transparent position-absolute top-50 end-0 translate-middle-y me-4 text-muted toggle-password" data-target="#txtPass">
                                             <i class="bi bi-eye-slash"></i>
                                         </button>
@@ -154,10 +178,8 @@
                                 <div class="col-md-6">
                                     <label asp-for="ConfirmPassword" class="form-label text-secondary fw-bold small">Confirmar Contraseña <span class="text-danger">*</span></label>
                                     <div class="input-with-icon position-relative">
-                                        <i class="bi bi-lock-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-
+                                        <i class="bi bi-check-circle position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                                         <input asp-for="ConfirmPassword" id="txtConfirmPass" class="form-control ps-5 pe-5" placeholder="••••••••" />
-
                                         <button type="button" class="btn border-0 bg-transparent position-absolute top-50 end-0 translate-middle-y me-4 text-muted toggle-password" data-target="#txtConfirmPass">
                                             <i class="bi bi-eye-slash"></i>
                                         </button>
@@ -168,11 +190,10 @@
 
                             <div class="mt-5">
                                 <button type="submit" class="btn btn-police w-100 py-3 fw-bold shadow-sm">
-                                    <i class="bi bi-person-plus-fill me-4"></i> Registrar Oficial
+                                    <i class="bi bi-person-plus-fill me-2"></i> Registrar Oficial
                                 </button>
                             </div>
                         </form>
-
                     </div>
                 </div>
             </div>
@@ -187,69 +208,103 @@
     }
 
     <script>
-        $(document).ready(function () {
+            $(document).ready(function () {
 
-            // 1. FUNCIONALIDAD MOSTRAR/OCULTAR CONTRASEÑA
-            $('.toggle-password').click(function () {
-                // Obtenemos el ID del input asociado desde data-target
-                var inputId = $(this).data('target');
-                var input = $(inputId);
-                var icon = $(this).find('i');
+                // --- 1. LÓGICA DE UNIDADES EN CASCADA (AJAX) ---
+                $("#ddlProvincia").change(function () {
+                    var provinciaSeleccionada = $(this).val();
+                    var $ddlUnidad = $("#ddlUnidad");
 
-                // Alternamos el tipo de input
-                if (input.attr('type') === 'password') {
-                    input.attr('type', 'text');
-                    icon.removeClass('bi-eye-slash').addClass('bi-eye'); // Ojo abierto
-                } else {
-                    input.attr('type', 'password');
-                    icon.removeClass('bi-eye').addClass('bi-eye-slash'); // Ojo tachado
-                }
+                    $ddlUnidad.empty();
+
+                    if (provinciaSeleccionada) {
+                        $ddlUnidad.append('<option value="">Cargando unidades...</option>');
+                        $ddlUnidad.prop("disabled", true);
+
+                        $.ajax({
+                            url: '/Account/ObtenerUnidadesPorProvincia',
+                            type: 'GET',
+                            data: { provincia: provinciaSeleccionada },
+                            success: function (data) {
+                                $ddlUnidad.empty();
+                                $ddlUnidad.append('<option value="">-- Seleccione su Unidad --</option>');
+                                $.each(data, function (i, item) {
+                                    $ddlUnidad.append($('<option>', {
+                                        value: item.valor,
+                                        text: item.texto
+                                    }));
+                                });
+                                $ddlUnidad.prop("disabled", false);
+                            },
+                            error: function () {
+                                $ddlUnidad.empty();
+                                $ddlUnidad.append('<option value="">Error al cargar</option>');
+                                alert('No se pudo conectar con el servidor.');
+                            }
+                        });
+                    } else {
+                        $ddlUnidad.append('<option value="">-- Primero elija Provincia --</option>');
+                        $ddlUnidad.prop("disabled", true);
+                    }
+                });
+
+                // --- 2. MOSTRAR/OCULTAR CONTRASEÑA ---
+                $('.toggle-password').click(function () {
+                    var inputId = $(this).data('target');
+                    var input = $(inputId);
+                    var icon = $(this).find('i');
+
+                    if (input.attr('type') === 'password') {
+                        input.attr('type', 'text');
+                        icon.removeClass('bi-eye-slash').addClass('bi-eye');
+                    } else {
+                        input.attr('type', 'password');
+                        icon.removeClass('bi-eye').addClass('bi-eye-slash');
+                    }
+                });
+
+                // --- 3. BARRA DE SEGURIDAD (STRENGTH METER) ---
+                $('#txtPass').on('keyup', function () {
+                    var pass = $(this).val();
+                    var score = 0;
+                
+                    // Criterios
+                    if (pass.length > 5) score++;
+                    if (/[A-Z]/.test(pass)) score++;
+                    if (/[0-9]/.test(pass)) score++;
+                    if (/[^A-Za-z0-9]/.test(pass)) score++; // Símbolo
+
+                    var bar = $('#pass-strength-bar');
+                    var text = $('#pass-strength-text');
+                    var width = 0;
+                    var color = 'bg-danger';
+                    var msg = 'Muy débil';
+
+                    switch (score) {
+                        case 1: width = 25; color = 'bg-danger'; msg = 'Débil'; break;
+                        case 2: width = 50; color = 'bg-warning'; msg = 'Media'; break;
+                        case 3: width = 75; color = 'bg-info'; msg = 'Buena'; break;
+                        case 4: width = 100; color = 'bg-success'; msg = 'Excelente'; break;
+                    }
+
+                    if (pass.length === 0) {
+                        width = 0;
+                        msg = 'Seguridad';
+                    }
+
+                    bar.css('width', width + '%');
+                    bar.removeClass('bg-danger bg-warning bg-info bg-success').addClass(color);
+                    text.text(msg);
+                
+                    // Color del texto
+                    text.removeClass('text-danger text-warning text-info text-success text-muted');
+                    if (width === 0) text.addClass('text-muted');
+                    else if (score <= 1) text.addClass('text-danger');
+                    else if (score === 2) text.addClass('text-warning');
+                    else if (score === 3) text.addClass('text-info');
+                    else text.addClass('text-success');
+                });
             });
-
-            // 2. LÓGICA DE BARRA DE SEGURIDAD
-            $('#txtPass').on('keyup', function () {
-                var pass = $(this).val();
-                var score = 0;
-
-                // Criterios de puntuación
-                if (pass.length > 5) score++;        // Longitud mínima aceptable
-                if (/[A-Z]/.test(pass)) score++;     // Tiene mayúscula
-                if (/[0-9]/.test(pass)) score++;     // Tiene número
-                if (/[^A-Za-z0-9]/.test(pass)) score++; // Tiene símbolo
-
-                var bar = $('#pass-strength-bar');
-                var text = $('#pass-strength-text');
-                var width = 0;
-                var color = 'bg-danger';
-                var msg = 'Muy débil';
-
-                // Asignar colores según puntaje
-                switch (score) {
-                    case 1: width = 25; color = 'bg-danger'; msg = 'Débil'; break;
-                    case 2: width = 50; color = 'bg-warning'; msg = 'Media'; break;
-                    case 3: width = 75; color = 'bg-info'; msg = 'Buena'; break;
-                    case 4: width = 100; color = 'bg-success'; msg = 'Excelente'; break;
-                }
-
-                if (pass.length === 0) {
-                    width = 0;
-                    msg = 'Seguridad';
-                }
-
-                // Aplicar estilos
-                bar.css('width', width + '%');
-                bar.removeClass('bg-danger bg-warning bg-info bg-success').addClass(color);
-                text.text(msg);
-
-                // Colorear el texto también
-                text.removeClass('text-danger text-warning text-info text-success text-muted');
-                if (width === 0) text.addClass('text-muted');
-                else if (score <= 1) text.addClass('text-danger');
-                else if (score === 2) text.addClass('text-warning');
-                else if (score === 3) text.addClass('text-info');
-                else text.addClass('text-success');
-            });
-        });
     </script>
 </body>
 </html>

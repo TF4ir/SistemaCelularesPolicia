@@ -26,13 +26,15 @@ public partial class SisCeluPoliC : DbContext
 
     public virtual DbSet<HistoricoSituacionCelular> HistoricoSituacionCelulars { get; set; }
 
+    public virtual DbSet<Permiso> Permisos { get; set; }
+
     public virtual DbSet<PersonalPolicial> PersonalPolicials { get; set; }
 
-    public virtual DbSet<UsuarioPublico> UsuarioPublicos { get; set; }
+    public virtual DbSet<Role> Roles { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-UTT80QN\\SQL2025;Database=SistemaCelularesIncautados;Integrated Security=True;Encrypt=False;TrustServerCertificate=True");
+    public virtual DbSet<Dependencia> Dependencias { get; set; }
+
+    public virtual DbSet<UsuarioPublico> UsuarioPublicos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,11 +42,7 @@ public partial class SisCeluPoliC : DbContext
         {
             entity.HasKey(e => e.IdCelular).HasName("PK__celulare__3320C56C65A8AC95");
 
-            entity.ToTable("celular", tb =>
-                {
-                    tb.HasTrigger("trg_celulares_actualizacion");
-                    tb.HasTrigger("trg_historico_situacion");
-                });
+            entity.ToTable("celular");
 
             entity.HasIndex(e => e.FechaIncautacion, "IX_celulares_fecha_incautacion");
 
@@ -287,6 +285,20 @@ public partial class SisCeluPoliC : DbContext
                 .HasConstraintName("FK__historico__id_po__59FA5E80");
         });
 
+        modelBuilder.Entity<Permiso>(entity =>
+        {
+            entity.HasKey(e => e.IdPermiso).HasName("PK__Permisos__0D626EC85F67A4B0");
+
+            entity.HasIndex(e => e.NombrePermiso, "UQ__Permisos__BA19B18D24AEFD3F").IsUnique();
+
+            entity.Property(e => e.Modulo)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.NombrePermiso)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<PersonalPolicial>(entity =>
         {
             entity.HasKey(e => e.IdPolicial).HasName("PK__personal__390DDAAC1ECF65EB");
@@ -316,6 +328,10 @@ public partial class SisCeluPoliC : DbContext
             entity.Property(e => e.BloqueadoHasta)
                 .HasColumnType("datetime")
                 .HasColumnName("bloqueado_hasta");
+            entity.Property(e => e.CodVerificacionEmail)
+                .HasMaxLength(6)
+                .IsUnicode(false)
+                .HasColumnName("cod_verificacion_email");
             entity.Property(e => e.CodigoPolicial)
                 .HasMaxLength(20)
                 .IsUnicode(false)
@@ -341,9 +357,15 @@ public partial class SisCeluPoliC : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("email_institucional");
+            entity.Property(e => e.EmailVerificado)
+                .HasDefaultValue(false)
+                .HasColumnName("email_verificado");
             entity.Property(e => e.FechaConfiguracion2fa)
                 .HasColumnType("datetime")
                 .HasColumnName("fecha_configuracion_2fa");
+            entity.Property(e => e.FechaExpiracionCod)
+                .HasColumnType("datetime")
+                .HasColumnName("fecha_expiracion_cod");
             entity.Property(e => e.FechaIngreso).HasColumnName("fecha_ingreso");
             entity.Property(e => e.FechaRegistro)
                 .HasDefaultValueSql("(getdate())")
@@ -393,6 +415,41 @@ public partial class SisCeluPoliC : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("unidad_dependencia");
+
+            entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.PersonalPolicials)
+                .HasForeignKey(d => d.IdRol)
+                .HasConstraintName("FK_Personal_Rol");
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(e => e.IdRol).HasName("PK__Roles__2A49584C402F1A49");
+
+            entity.HasIndex(e => e.NombreRol, "UQ__Roles__4F0B537F784F62C6").IsUnique();
+
+            entity.Property(e => e.Descripcion)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+            entity.Property(e => e.NombreRol)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.HasMany(d => d.IdPermisos).WithMany(p => p.IdRols)
+                .UsingEntity<Dictionary<string, object>>(
+                    "RolPermiso",
+                    r => r.HasOne<Permiso>().WithMany()
+                        .HasForeignKey("IdPermiso")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK__Rol_Permi__IdPer__42E1EEFE"),
+                    l => l.HasOne<Role>().WithMany()
+                        .HasForeignKey("IdRol")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK__Rol_Permi__IdRol__41EDCAC5"),
+                    j =>
+                    {
+                        j.HasKey("IdRol", "IdPermiso").HasName("PK__Rol_Perm__BA9F7EA0C6D1F1C9");
+                        j.ToTable("Rol_Permiso");
+                    });
         });
 
         modelBuilder.Entity<UsuarioPublico>(entity =>
@@ -417,6 +474,10 @@ public partial class SisCeluPoliC : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("apellidos");
+            entity.Property(e => e.CodVerificacionEmail)
+                .HasMaxLength(6)
+                .IsUnicode(false)
+                .HasColumnName("cod_verificacion_email");
             entity.Property(e => e.ContraseñaHash)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -435,6 +496,9 @@ public partial class SisCeluPoliC : DbContext
             entity.Property(e => e.EmailVerificado)
                 .HasDefaultValue(false)
                 .HasColumnName("email_verificado");
+            entity.Property(e => e.FechaExpiracionCod)
+                .HasColumnType("datetime")
+                .HasColumnName("fecha_expiracion_cod");
             entity.Property(e => e.FechaNacimiento).HasColumnName("fecha_nacimiento");
             entity.Property(e => e.FechaRegistro)
                 .HasDefaultValueSql("(getdate())")

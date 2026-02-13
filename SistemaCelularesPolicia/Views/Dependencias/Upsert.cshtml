@@ -1,0 +1,76 @@
+﻿@model SistemaCelularesPolicia.Models.Dependencia
+
+@{
+    ViewData["Title"] = Model.IdDependencia == 0 ? "Nueva Unidad" : "Editar Unidad";
+}
+
+<div class="container mt-4 mb-5" style="max-width: 800px;">
+    <form asp-action="Upsert" method="post">
+        <input type="hidden" asp-for="IdDependencia" />
+
+        <div class="card shadow border-0 overflow-hidden">
+            <div class="card-header bg-police text-white py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-building-fill me-2"></i>
+                    @(Model.IdDependencia == 0 ? "Registrar Nueva Dependencia" : "Editar Datos de la Unidad")
+                </h5>
+                <small class="opacity-75">Complete la información oficial de la unidad policial.</small>
+            </div>
+
+            <div class="card-body p-4">
+                
+                <h6 class="text-police fw-bold mb-3 border-bottom pb-2">
+                    <i class="bi bi-card-heading me-1"></i> Información General
+                </h6>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-muted">Nombre Oficial <span class="text-danger">*</span></label>
+                    <input asp-for="Nombre" class="form-control form-control-lg" placeholder="Ej: COMISARÍA PNP HUANCAYO" required />
+                    <span asp-validation-for="Nombre" class="text-danger small"></span>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted">Siglas / Abreviatura</label>
+                        <input asp-for="Siglas" class="form-control" placeholder="Ej: DIVINCRI, CPNP" />
+                        <div class="form-text small">Opcional. Útil para reportes compactos.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted">Provincia / Sede</label>
+                        <select asp-for="Provincia" class="form-select">
+                            <option value="">Seleccione Ubicación...</option>
+                            <option value="HUANCAYO">HUANCAYO</option>
+                            <option value="CHANCHAMAYO">CHANCHAMAYO</option>
+                            <option value="SATIPO">SATIPO</option>
+                            <option value="TARMA">TARMA</option>
+                            <option value="JAUJA">JAUJA</option>
+                            <option value="CHUPACA">CHUPACA</option>
+                            <option value="YAULI">YAULI</option>
+                            <option value="JUNIN">JUNIN</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-light p-3 rounded border mt-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" asp-for="Activa" style="cursor: pointer;" />
+                        <label class="form-check-label fw-bold ms-2" asp-for="Activa">Unidad Operativa (Activa)</label>
+                    </div>
+                    <small class="text-muted ms-5 d-block">Desactive esta opción si la unidad ha sido cerrada o fusionada, para mantener el histórico.</small>
+                </div>
+
+                <div class="row mt-5">
+                    <div class="col-12 d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-police px-4">
+                            <i class="bi bi-save me-1"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>

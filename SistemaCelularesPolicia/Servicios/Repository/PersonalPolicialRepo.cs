@@ -2,6 +2,7 @@
 using SistemaCelularesPolicia.Models;
 using SistemaCelularesPolicia.Recursos.Data;
 using SistemaCelularesPolicia.Servicios.Interfaces;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace SistemaCelularesPolicia.Servicios.Repository
 {
@@ -37,11 +38,21 @@ namespace SistemaCelularesPolicia.Servicios.Repository
         public async Task<PersonalPolicial> ObtenerPorEmailOCodigo(string input)
         {
             return await _context.PersonalPolicials
-                .FirstOrDefaultAsync(p => p.EmailInstitucional == input || p.CodigoPolicial == input);
+                .AsNoTracking()
+                .Include(u => u.IdRolNavigation)
+                    .ThenInclude(r => r.IdPermisos)
+                .Where(p => (p.EmailInstitucional == input || p.CodigoPolicial == input)
+                            && p.Activo == true)
+                .FirstOrDefaultAsync();
         }
+
         public async Task<PersonalPolicial> ObtenerPorId(int id)
         {
-            return await _context.PersonalPolicials.FindAsync(id);
+            return await _context.PersonalPolicials
+                .AsNoTracking()
+                .Include(u => u.IdRolNavigation)
+                    .ThenInclude(r => r.IdPermisos)
+                .FirstOrDefaultAsync(p => p.IdPolicial == id);
         }
 
         public async Task<bool> Activar2fa(int idPolicial, string secretKey, string codigosRespaldo)
@@ -52,7 +63,7 @@ namespace SistemaCelularesPolicia.Servicios.Repository
             policia.SecretKey2fa = secretKey;
             policia.CodigosRespaldo2fa = codigosRespaldo;
             policia.DosFactoresActivo = true; // Aquí activamos el candado
-            policia.FechaConfiguracion2fa = DateTime.Now;
+            policia.FechaConfiguracion2fa = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;
@@ -64,7 +75,7 @@ namespace SistemaCelularesPolicia.Servicios.Repository
             if (policia != null)
             {
                 policia.CodigosRespaldo2fa = nuevosCodigos;
-                policia.FechaUltimoCodigo = DateTime.Now;
+                policia.FechaUltimoCodigo = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
         }
@@ -75,7 +86,7 @@ namespace SistemaCelularesPolicia.Servicios.Repository
             if (policia != null)
             {
                 policia.UltimoCodigoUsado = codigoUsado;
-                policia.FechaUltimoCodigo = DateTime.Now;
+                policia.FechaUltimoCodigo = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
         }

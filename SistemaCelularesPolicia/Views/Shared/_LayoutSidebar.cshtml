@@ -1,0 +1,140 @@
+﻿@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Portal Policial</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="~/css/layoutSidebar.css" />
+</head>
+<body>
+
+    <div id="wrapper">
+        <div id="sidebar-wrapper">
+            <div class="sidebar-brand p-3 text-center border-bottom border-secondary">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-shield-shaded text-success fs-3"></i>
+                    <div class="text-start" style="line-height: 1.1;">
+                        <span class="fw-bold fs-5 tracking-tight d-block">SICIR PNP</span>
+                        <small class="text-muted" style="font-size: 0.65rem;">REGIÓN JUNÍN</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-group list-group-flush my-3">
+
+                <a asp-controller="Policia" asp-action="Dashboard"
+                       class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active-link" : "")">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+
+                <div class="sidebar-heading mt-3">Operaciones</div>
+
+                @if (User.HasClaim("Permiso", "Celulares.Registro"))
+                {
+                    <a asp-controller="Policia" asp-action="Registrar"
+                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "Registrar" ? "active-link" : "")">
+                        <i class="bi bi-plus-circle"></i> Registrar Incautación
+                    </a>
+                }
+
+                @if (User.HasClaim("Permiso", "Celulares.Busqueda"))
+                {
+                    <a asp-controller="Policia" asp-action="VerRegistros"
+                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "VerRegistros" || ViewContext.RouteData.Values["Action"]?.ToString() == "ConsultarRegistros" ? "active-link" : "")">
+                        <i class="bi bi-list-ul"></i> Consultar Registros
+                    </a>
+                }
+
+                @if (User.HasClaim("Permiso", "Usuarios.Gestionar"))
+                {
+                    <div class="sidebar-heading mt-3">Gestión Interna</div>
+
+                    <a asp-controller="Dependencias" asp-action="Index"
+                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dependencias" ? "active-link" : "")">
+                        <i class="bi bi-building"></i> Unidades / Dependencias
+                    </a>
+
+                    <a asp-controller="Roles" asp-action="Index"
+                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Roles" ? "active-link" : "")">
+                        <i class="bi bi-shield-lock"></i> Roles y Permisos
+                    </a>
+
+                    <a asp-controller="Personal" asp-action="Index"
+                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Personal" ? "active-link" : "")">
+                        <i class="bi bi-people"></i> Personal Policial
+                    </a>
+                }
+
+            </div>
+        </div>
+        <div id="page-content-wrapper">
+
+            <nav class="navbar navbar-expand-lg top-navbar border-bottom bg-white">
+                <div class="container-fluid">
+                    <button class="btn btn-light btn-sm shadow-sm" id="menu-toggle">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+
+                    <div class="ms-auto d-flex align-items-center gap-3">
+
+                        <div class="text-end d-none d-md-block line-height-sm">
+                            <span class="badge bg-warning text-dark">
+                                @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                            </span>
+                            <div class="fw-bold small text-dark">
+                                <i class="bi bi-person-badge-fill text-police me-1"></i>
+                                @User.Identity?.Name
+                            </div>
+                            <div class="small text-muted" style="font-size: 0.75rem;">
+                                @User.FindFirst(ClaimTypes.Email)?.Value
+                            </div>
+                        </div>
+
+                        <div class="vr h-100 mx-2"></div>
+
+                        <form asp-controller="Account" asp-action="Salir" method="post" class="m-0">
+                            <button type="submit" class="btn btn-sm btn-outline-danger fw-bold d-flex align-items-center gap-2">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span class="d-none d-md-inline">Salir</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid p-4">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        $("#menu-toggle").click(function(e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+
+            // Lógica simple para mover el margen
+            var sidebar = $("#sidebar-wrapper");
+            if (sidebar.css("margin-left") === "0px") {
+                sidebar.css("margin-left", "-260px");
+            } else {
+                sidebar.css("margin-left", "0px");
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,88 @@
+﻿body {
+    overflow-x: hidden;
+}
+
+#wrapper {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+#sidebar-wrapper {
+    min-width: 260px;
+    max-width: 260px;
+    /* Configuración para que se quede fijo al bajar */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    background-color: #0f172a;
+    color: #fff;
+    transition: all 0.3s;
+    /* Permite scroll interno si hay muchos items en el menú */
+    overflow-y: auto;
+    /* Evita que el sidebar se encoja */
+    flex-shrink: 0;
+    z-index: 1000;
+}
+
+/* Títulos de sección (ej: GESTIÓN INTERNA) */
+.sidebar-heading {
+    padding: 1rem 1.25rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748b; /* Gris claro */
+    font-weight: bold;
+    margin-top: 1rem;
+}
+
+/* Enlaces del menú */
+.list-group-item {
+    background-color: transparent;
+    color: #e2e8f0;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+    .list-group-item:hover {
+        background-color: #1e293b; /* Azul un poco más claro al pasar mouse */
+        color: #fff;
+        text-decoration: none;
+        border-left: 4px solid #198754; /* Borde verde policial */
+    }
+
+    .list-group-item i {
+        margin-right: 12px;
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+    }
+
+/* Contenido Principal */
+#page-content-wrapper {
+    flex-grow: 1;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    /* Asegura que el contenido sea el que genere el scroll */
+    overflow-x: hidden;
+}
+
+/* Bbarra blanca de arriba (navbar) */
+.top-navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.08);
+    background-color: white;
+    padding: 10px 20px;
+}
+
+.active-link {
+    background-color: #1e293b !important; /* Fondo más claro */
+    color: #fff !important;
+    border-left: 4px solid #198754 !important; /* Borde verde */
+    font-weight: bold;
+}

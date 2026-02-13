@@ -9,7 +9,7 @@ using System.Security.Claims; // Necesario para User.FindFirst
 
 namespace SistemaCelularesPolicia.Controllers
 {
-    [Authorize(Roles = "Policia")] // Aseguramos que solo policías entren
+    [Authorize]
     public class PoliciaController : Controller
     {
         private readonly ICelular _celularService;
@@ -23,6 +23,12 @@ namespace SistemaCelularesPolicia.Controllers
         [HttpGet]
         public async Task<IActionResult> Registrar()
         {
+            // VERIFICACIÓN MANUAL DEL PERMISO
+            if (!User.HasClaim("Permiso", "Celulares.Registro"))
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
+
             await CargarListasDesplegables();
             return View();
         }
@@ -45,12 +51,12 @@ namespace SistemaCelularesPolicia.Controllers
                 return RedirectToAction("LoginPolicia", "Account");
             }
 
-            celular.FechaRegistro = DateTime.Now;
+            celular.FechaRegistro = DateTime.UtcNow;
 
             // Si la fecha incautación viene vacía del form, usa la actual
             if (celular.FechaIncautacion == default)
             {
-                celular.FechaIncautacion = DateTime.Now;
+                celular.FechaIncautacion = DateTime.UtcNow;
             }
 
             // --- PASO 2: CORREGIR EL MODELSTATE ---

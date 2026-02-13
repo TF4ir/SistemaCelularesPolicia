@@ -1,0 +1,94 @@
+﻿@model SistemaCelularesPolicia.Models.ViewModels.RolViewModel
+
+@{
+    ViewData["Title"] = Model.IdRol == 0 ? "Nuevo Rol" : "Editar Rol";
+}
+
+<div class="container-fluid mt-4 mb-5">
+    <form asp-action="Upsert" method="post">
+        <input type="hidden" asp-for="IdRol" />
+
+        <div class="card shadow border-0 overflow-hidden">
+            <div class="card-header bg-police text-white py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-shield-lock-fill me-2"></i>
+                    @(Model.IdRol == 0 ? "Crear Nuevo Rol" : "Editar Rol y Permisos")
+                </h5>
+                <small class="opacity-75">Configure el nombre del rol y marque las casillas para otorgar acceso.</small>
+            </div>
+
+            <div class="card-body p-4">
+                
+                <h6 class="text-police fw-bold mb-3 border-bottom pb-2">
+                    <i class="bi bi-card-text me-1"></i> Información del Rol
+                </h6>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted">Nombre del Rol <span class="text-danger">*</span></label>
+                        <input asp-for="NombreRol" class="form-control" placeholder="Ej: Supervisor" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted">Descripción</label>
+                        <input asp-for="Descripcion" class="form-control" placeholder="Breve descripción de las funciones" />
+                    </div>
+                </div>
+
+                <h6 class="text-police fw-bold mb-3 border-bottom pb-2 mt-4">
+                    <i class="bi bi-check2-square me-1"></i> Asignar Permisos
+                </h6>
+                
+                <div class="alert alert-light border mb-3">
+                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i> Marque las funcionalidades a las que este rol tendrá acceso.</small>
+                </div>
+
+                <div class="row g-3">
+                    @for (int i = 0; i < Model.Permisos.Count; i++)
+                    {
+                        <div class="col-md-4 col-lg-3">
+                            <div class="form-check card h-100 p-3 border shadow-sm hover-shadow bg-light">
+                                <input type="hidden" asp-for="@Model.Permisos[i].IdPermiso" />
+                                <input type="hidden" asp-for="@Model.Permisos[i].Nombre" />
+                                <input type="hidden" asp-for="@Model.Permisos[i].Modulo" />
+                                
+                                <div class="d-flex align-items-center">
+                                    <input class="form-check-input me-3 fs-5" asp-for="@Model.Permisos[i].Seleccionado" style="cursor: pointer;" />
+                                    <div>
+                                        <label class="form-check-label fw-bold text-dark d-block" asp-for="@Model.Permisos[i].Seleccionado" style="cursor: pointer;">
+                                            @Model.Permisos[i].Nombre
+                                        </label>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill" style="font-size: 0.7em;">
+                                            @Model.Permisos[i].Modulo
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="row mt-5">
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-police px-4">
+                            <i class="bi bi-save me-1"></i> Guardar Cambios
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            Cancelar
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Ajuste para que el borde hover coincida con tu verde institucional (#15803d) */
+    .hover-shadow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+        transition: all 0.2s ease-in-out;
+        border-color: #15803d !important;
+    }
+</style>

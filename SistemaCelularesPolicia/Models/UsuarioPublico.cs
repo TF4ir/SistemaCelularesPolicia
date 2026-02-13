@@ -35,10 +35,8 @@ public partial class UsuarioPublico
 
     public bool? EmailVerificado { get; set; }
 
-    [Column("cod_verificacion_email")]
     public string? CodVerificacionEmail { get; set; }
 
-    [Column("fecha_expiracion_cod")]
     public DateTime? FechaExpiracionCod { get; set; }
 
     public virtual ICollection<ConsultaPublico> ConsultaPublicos { get; set; } = new List<ConsultaPublico>();

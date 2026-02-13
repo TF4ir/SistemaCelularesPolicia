@@ -61,18 +61,19 @@ public partial class PersonalPolicial
 
     public string? ContrasenaHash { get; set; } = null!;
 
-    [Column("cod_verificacion_email")]
     public string? CodVerificacionEmail { get; set; }
 
-    [Column("fecha_expiracion_cod")]
     public DateTime? FechaExpiracionCod { get; set; }
 
-    [Column("email_verificado")]
     public bool? EmailVerificado { get; set; }
+
+    public int? IdRol { get; set; }
 
     public virtual ICollection<Celular> Celulars { get; set; } = new List<Celular>();
 
     public virtual ICollection<EvidenciaCelular> EvidenciaCelulars { get; set; } = new List<EvidenciaCelular>();
 
     public virtual ICollection<HistoricoSituacionCelular> HistoricoSituacionCelulars { get; set; } = new List<HistoricoSituacionCelular>();
+
+    public virtual Role? IdRolNavigation { get; set; }
 }

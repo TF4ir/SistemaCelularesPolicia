@@ -1,0 +1,43 @@
+﻿@model SistemaCelularesPolicia.Models.PersonalPolicial
+
+@{
+    ViewData["Title"] = "Asignar Rol";
+}
+
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-police text-white py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-shield-lock me-2"></i>Asignar Rol a Usuario</h5>
+        </div>
+        <div class="card-body p-4">
+            
+            <div class="alert alert-light border mb-4">
+                <i class="bi bi-person-badge me-2 text-police"></i>
+                Estás cambiando el nivel de acceso para:
+                <div class="fw-bold mt-1 text-dark">@Model.RangoGrado @Model.Nombres @Model.Apellidos</div>
+            </div>
+            
+            <form asp-action="AsignarRol" method="post">
+                <input type="hidden" name="id" value="@Model.IdPolicial" />
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted">Seleccione el nuevo Rol:</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-person-gear"></i></span>
+                        <select name="nuevoIdRol" class="form-select form-select-lg" asp-items="ViewBag.ListaRoles"></select>
+                    </div>
+                    <div class="form-text small">
+                        Este cambio afectará a los permisos del usuario la próxima vez que inicie sesión.
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-police btn-lg shadow-sm">
+                        <i class="bi bi-save me-2"></i> Guardar Asignación
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
