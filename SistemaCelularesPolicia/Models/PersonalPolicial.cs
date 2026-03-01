@@ -69,11 +69,15 @@ public partial class PersonalPolicial
 
     public int? IdRol { get; set; }
 
+    public int? IdDependencia { get; set; }
+
     public virtual ICollection<Celular> Celulars { get; set; } = new List<Celular>();
 
     public virtual ICollection<EvidenciaCelular> EvidenciaCelulars { get; set; } = new List<EvidenciaCelular>();
 
     public virtual ICollection<HistoricoSituacionCelular> HistoricoSituacionCelulars { get; set; } = new List<HistoricoSituacionCelular>();
+
+    public virtual Dependencia? IdDependenciaNavigation { get; set; }
 
     public virtual Role? IdRolNavigation { get; set; }
 }

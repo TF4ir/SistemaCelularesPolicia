@@ -13,21 +13,19 @@ namespace SistemaCelularesPolicia.Controllers
     public class PoliciaController : Controller
     {
         private readonly ICelular _celularService;
+        private readonly SisCeluPoliC _context;
 
-        public PoliciaController(ICelular celularService)
+        public PoliciaController(ICelular celularService, SisCeluPoliC context)
         {
             _celularService = celularService;
+            _context = context;
         }
 
         // GET: Formulario de Registro
         [HttpGet]
         public async Task<IActionResult> Registrar()
         {
-            // VERIFICACIÓN MANUAL DEL PERMISO
-            if (!User.HasClaim("Permiso", "Celulares.Registro"))
-            {
-                return RedirectToAction("AccessDenied", "Home");
-            }
+            if (!User.HasClaim("Permiso", "Celulares.Registrar")) return RedirectToAction("AccessDenied", "Home");
 
             await CargarListasDesplegables();
             return View();
@@ -38,6 +36,7 @@ namespace SistemaCelularesPolicia.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Registrar(Celular celular)
         {
+            if (!User.HasClaim("Permiso", "Celulares.Registrar")) return RedirectToAction("AccessDenied", "Home");
             // --- PASO 1: ASIGNAR DATOS AUTOMÁTICOS ---
 
             // Obtener ID del usuario logueado
@@ -126,6 +125,8 @@ namespace SistemaCelularesPolicia.Controllers
         [HttpGet]
         public async Task<IActionResult> Corregir(int id)
         {
+            if (!User.HasClaim("Permiso", "Celulares.Editar")) return RedirectToAction("AccessDenied", "Home");
+
             var celular = await _celularService.ObtenerPorId(id);
             if (celular == null) return NotFound();
 
@@ -137,6 +138,8 @@ namespace SistemaCelularesPolicia.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Corregir(Celular celular)
         {
+            if (!User.HasClaim("Permiso", "Celulares.Editar")) return RedirectToAction("AccessDenied", "Home");
+
             // Limpiamos validaciones de campos que no vienen en este form o no se tocan
             ModelState.Remove("IdPolicialRegistroNavigation");
             ModelState.Remove("IdFiscaliaNavigation");
@@ -158,11 +161,13 @@ namespace SistemaCelularesPolicia.Controllers
         [HttpGet]
         public async Task<IActionResult> CambiarEstado(int id)
         {
+            if (!User.HasClaim("Permiso", "Celulares.CambiarSituacion")) return RedirectToAction("AccessDenied", "Home");
+
             var celular = await _celularService.ObtenerPorId(id);
             if (celular == null) return NotFound();
 
             // Solo necesitamos la lista de situaciones
-            var situaciones = new List<string> { "INCAUTADO", "RECUPERADO", "BAJA", "DEVUELTO" };
+            var situaciones = new List<string> { "INCAUTADO", "RECUPERADO", "DEVUELTO" };
             ViewBag.Situaciones = new SelectList(situaciones, celular.Situacion);
 
             return View(celular);
@@ -172,6 +177,8 @@ namespace SistemaCelularesPolicia.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CambiarEstado(int idCelular, string nuevaSituacion, string justificacion)
         {
+            if (!User.HasClaim("Permiso", "Celulares.CambiarSituacion")) return RedirectToAction("AccessDenied", "Home");
+
             if (string.IsNullOrEmpty(justificacion))
             {
                 ModelState.AddModelError("justificacion", "Es obligatorio justificar el cambio de estado.");
@@ -194,12 +201,32 @@ namespace SistemaCelularesPolicia.Controllers
 
         // Para ver el listado de celulares incautados / Ver Registros
         [HttpGet]
-        public async Task<IActionResult> VerRegistros(int pagina = 1, string busqueda = "")
+        public async Task<IActionResult> VerRegistros(int pagina = 1, string busqueda = "", DateTime? fechaInicio = null, DateTime? fechaFin = null, List<string> situaciones = null, int? idDependenciaFiltro = null)
         {
-            int registrosPorPagina = 10; // Cantidad fija por página
+            if (!User.HasClaim("Permiso", "Celulares.Consultar")) return RedirectToAction("AccessDenied", "Home");
 
-            // Pasamos la 'busqueda' al repositorio
-            var modelo = await _celularService.ObtenerListadoPaginado(pagina, registrosPorPagina, busqueda);
+            int registrosPorPagina = 10;
+            bool esAdmin = User.HasClaim("Permiso", "Admin.Dependencias"); // Verificamos si es superusuario
+            int idPolicia = int.Parse(User.FindFirst("IdUsuario").Value);
+
+            // DETERMINAMOS EL ALCANCE DE DATOS (Data Scoping)
+            int? dependenciaFinal = idDependenciaFiltro;
+
+            if (!esAdmin)
+            {
+                // Si no es admin, ignoramos el filtro de la vista y lo FORZAMOS a su propia dependencia
+                var policia = await _context.PersonalPolicials.FindAsync(idPolicia);
+                dependenciaFinal = policia?.IdDependencia;
+            }
+            else
+            {
+                // Si es admin, le mandamos la lista de todas las comisarías para que pueda filtrar a gusto
+                ViewBag.Dependencias = new SelectList(await _context.Dependencias.Where(d => d.Activa == true).OrderBy(d => d.Nombre).ToListAsync(), "IdDependencia", "Nombre", idDependenciaFiltro);
+            }
+
+            ViewBag.EsAdmin = esAdmin;
+
+            var modelo = await _celularService.ObtenerListadoPaginado(pagina, registrosPorPagina, busqueda, fechaInicio, fechaFin, situaciones, dependenciaFinal);
 
             return View(modelo);
         }
@@ -208,7 +235,23 @@ namespace SistemaCelularesPolicia.Controllers
         [HttpGet]
         public async Task<IActionResult> Dashboard()
         {
-            var datos = await _celularService.ObtenerDatosDashboard();
+            if (!User.HasClaim("Permiso", "Dashboard.Ver")) return RedirectToAction("AccessDenied", "Home");
+
+            // Verificamos si es Administrador Global
+            bool esAdmin = User.HasClaim("Permiso", "Admin.Dependencias");
+            int? idDependencia = null;
+
+            if (!esAdmin)
+            {
+                // Si no es admin, averiguamos su comisaría para enviarla como candado
+                int idPolicia = int.Parse(User.FindFirst("IdUsuario").Value);
+                var policia = await _context.PersonalPolicials.FindAsync(idPolicia);
+                idDependencia = policia?.IdDependencia;
+            }
+
+            var datos = await _celularService.ObtenerDatosDashboard(idDependencia);
+            datos.EsAdmin = esAdmin; // Le pasamos a la vista quién es
+
             return View(datos);
         }
     }

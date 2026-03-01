@@ -44,33 +44,36 @@ namespace SistemaCelularesPolicia.Controllers
         [HttpGet]
         public async Task<IActionResult> RegisterPolicia()
         {
-            // Cargar lista de Provincias para el filtro
-            // Usamos Distinct() para que no se repita "HUANCAYO" 20 veces
-            ViewBag.Provincias = await _context.Dependencias
-                .Where(d => d.Activa == true)
-                .Select(d => d.Provincia)
-                .Distinct()
-                .OrderBy(p => p)
+            // Cargamos la lista de Regiones en lugar de Provincias
+            ViewBag.Regiones = await _context.RegionPolicials
+                .Where(r => r.Activa == true)
+                .OrderBy(r => r.NombreRegion)
                 .ToListAsync();
 
             return View();
         }
 
-        // --- API PARA CARGAR UNIDADES (AJAX) ---
+        // --- API PARA CARGAR MENÚS EN CASCADA (AJAX) ---
         [HttpGet]
-        public async Task<JsonResult> ObtenerUnidadesPorProvincia(string provincia)
+        public async Task<JsonResult> ObtenerDivisionesPorRegion(int idRegion)
         {
-            // Busca las dependencias que coincidan con la provincia seleccionada
-            var unidades = await _context.Dependencias
-                .Where(d => d.Provincia == provincia && d.Activa == true)
-                .OrderBy(d => d.Nombre)
-                .Select(d => new {
-                    valor = d.Nombre,
-                    texto = d.Nombre
-                })
+            var divisiones = await _context.DivisionPolicials
+                .Where(d => d.IdRegion == idRegion && d.Activa == true)
+                .Select(d => new { valor = d.IdDivision, texto = d.NombreDivision })
                 .ToListAsync();
 
-            return Json(unidades);
+            return Json(divisiones);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> ObtenerDependenciasPorDivision(int idDivision)
+        {
+            var dependencias = await _context.Dependencias
+                .Where(d => d.IdDivision == idDivision && d.Activa == true)
+                .Select(d => new { valor = d.IdDependencia, texto = d.Nombre })
+                .ToListAsync();
+
+            return Json(dependencias);
         }
 
         // --- REGISTRO PÚBLICO (POST) ---
@@ -535,60 +538,64 @@ namespace SistemaCelularesPolicia.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterPolice(RegisterPoliciaViewModel viewModel)
         {
-            // 1. VALIDACIÓN AUTOMÁTICA (Data Annotations)
-            if (!ModelState.IsValid) return View("RegisterPolicia", viewModel);
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Regiones = await _context.RegionPolicials.Where(r => r.Activa == true).ToListAsync();
+                return View("RegisterPolicia", viewModel);
+            }
 
-            // 2. VALIDAR DUPLICADOS (Lógica de Negocio)
             if (await _personalService.ExistePolicia(viewModel.CodigoPolicial, viewModel.Dni, viewModel.EmailInstitucional))
             {
-
-                ModelState.AddModelError("", "El Código Policial, DNI o Email ya están registrados en el sistema.");
+                ModelState.AddModelError("", "El Código Policial, DNI o Email ya están registrados.");
+                ViewBag.Regiones = await _context.RegionPolicials.Where(r => r.Activa == true).ToListAsync();
                 return View("RegisterPolicia", viewModel);
             }
 
             string codigo = new Random().Next(100000, 999999).ToString();
 
-            // 3. MAPEO (ViewModel -> Entidad de BD)
+            var rolPorDefecto = await _context.Roles.FirstOrDefaultAsync(r => r.NombreRol == "Registrador");
+
+            // TRUCO DE SEGURIDAD: Como tu columna antigua 'UnidadDependencia' no acepta nulos en BD, 
+            // buscamos el nombre real para guardarlo ahí y no romper la BD, mientras guardamos el ID nuevo.
+            var dependenciaSeleccionada = await _context.Dependencias.FindAsync(viewModel.IdDependencia);
+            string nombreUnidad = dependenciaSeleccionada?.Nombre ?? "-";
+
             var nuevoPolicia = new PersonalPolicial
             {
-                // Datos del formulario
                 CodigoPolicial = viewModel.CodigoPolicial,
                 Dni = viewModel.Dni,
                 Nombres = viewModel.Nombres,
                 Apellidos = viewModel.Apellidos,
                 RangoGrado = viewModel.RangoGrado,
-                UnidadDependencia = viewModel.UnidadDependencia,
+                IdDependencia = viewModel.IdDependencia,
+                UnidadDependencia = nombreUnidad, // Mantenemos el campo string lleno por compatibilidad
                 EmailInstitucional = viewModel.EmailInstitucional,
                 TelefonoContacto = viewModel.TelefonoContacto,
-
-                // Datos de seguridad y auditoría (El usuario no los controla)
-                ContrasenaHash = Utilidades.EncriptarClave(viewModel.Password), // Encriptamos la clave del VM
+                ContrasenaHash = Utilidades.EncriptarClave(viewModel.Password),
                 Activo = true,
                 FechaRegistro = DateTime.UtcNow,
+
+                IdRol = rolPorDefecto?.IdRol,
+
                 DosFactoresActivo = false,
                 IntentosFallidos2fa = 0,
-
-                // Código de verificación de email
                 EmailVerificado = false,
                 CodVerificacionEmail = codigo,
                 FechaExpiracionCod = DateTime.UtcNow.AddMinutes(10)
             };
 
-            // 4. GUARDAR EN BASE DE DATOS
             bool resultado = await _personalService.RegistrarPolicia(nuevoPolicia);
 
             if (resultado)
             {
-                // 1. Enviar Correo
                 await _emailService.EnviarCorreoVerificacion(nuevoPolicia.EmailInstitucional, nuevoPolicia.Nombres, codigo);
-
-                // 2. Redirigir a Verificación
                 TempData["MensajeInfo"] = "Revise su correo institucional para verificar su cuenta.";
                 return RedirectToAction("VerificarCodigoPolicia", new { email = viewModel.EmailInstitucional });
             }
             else
             {
                 ModelState.AddModelError("", "Error al registrar.");
+                ViewBag.Regiones = await _context.RegionPolicials.Where(r => r.Activa == true).ToListAsync();
                 return View("RegisterPolicia", viewModel);
             }
         }

@@ -30,31 +30,31 @@
                 </div>
 
                 <div class="row mb-4">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label fw-bold small text-muted">Siglas / Abreviatura</label>
                         <input asp-for="Siglas" class="form-control" placeholder="Ej: DIVINCRI, CPNP" />
-                        <div class="form-text small">Opcional. Útil para reportes compactos.</div>
+                        <div class="form-text small">Opcional.</div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small text-muted">Provincia / Sede</label>
-                        <select asp-for="Provincia" class="form-select">
-                            <option value="">Seleccione Ubicación...</option>
-                            <option value="HUANCAYO">HUANCAYO</option>
-                            <option value="CHANCHAMAYO">CHANCHAMAYO</option>
-                            <option value="SATIPO">SATIPO</option>
-                            <option value="TARMA">TARMA</option>
-                            <option value="JAUJA">JAUJA</option>
-                            <option value="CHUPACA">CHUPACA</option>
-                            <option value="YAULI">YAULI</option>
-                            <option value="JUNIN">JUNIN</option>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small text-muted">Región Policial <span class="text-danger">*</span></label>
+                        <select asp-for="IdRegion" class="form-select" asp-items="ViewBag.Regiones" id="ddlRegion" required>
+                            <option value="">Seleccione Región...</option>
+                        </select>
+                        <span asp-validation-for="IdRegion" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small text-muted">División Policial</label>
+                        <select asp-for="IdDivision" class="form-select" asp-items="ViewBag.Divisiones" id="ddlDivision">
+                            <option value="">Seleccione División...</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="bg-light p-3 rounded border mt-3">
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" asp-for="Activa" style="cursor: pointer;" />
-                        <label class="form-check-label fw-bold ms-2" asp-for="Activa">Unidad Operativa (Activa)</label>
+                        <input class="form-check-input" type="checkbox" id="Activa" name="Activa" value="true" @(Model.Activa != false ? "checked" : "") style="cursor: pointer;" />
+                        <input type="hidden" name="Activa" value="false" />
+                        <label class="form-check-label fw-bold ms-2" for="Activa">Unidad Operativa (Activa)</label>
                     </div>
                     <small class="text-muted ms-5 d-block">Desactive esta opción si la unidad ha sido cerrada o fusionada, para mantener el histórico.</small>
                 </div>
@@ -74,3 +74,35 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            // Evento que se dispara al cambiar la Región
+            $('#ddlRegion').change(function () {
+                var regionId = $(this).val();
+                var ddlDivision = $('#ddlDivision');
+
+                // Limpiamos el combo de divisiones
+                ddlDivision.empty();
+                ddlDivision.append('<option value="">Seleccione División...</option>');
+
+                // Si seleccionó una región válida, buscamos sus divisiones por AJAX
+                if (regionId) {
+                    $.getJSON('@Url.Action("ObtenerDivisiones", "Dependencias")', { idRegion: regionId }, function (data) {
+                        $.each(data, function (index, item) {
+                            ddlDivision.append($('<option/>', {
+                                value: item.value,
+                                text: item.text
+                            }));
+                        });
+                    });
+                }
+            });
+        });
+    </script>
+}

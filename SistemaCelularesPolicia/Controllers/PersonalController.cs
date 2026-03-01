@@ -7,7 +7,7 @@ using SistemaCelularesPolicia.Recursos.Data;
 
 namespace SistemaCelularesPolicia.Controllers
 {
-    [Authorize(Roles = "Administrador")] // Solo el admin entra aquí
+    [Authorize]
     public class PersonalController : Controller
     {
         private readonly SisCeluPoliC _context;
@@ -20,6 +20,8 @@ namespace SistemaCelularesPolicia.Controllers
         // 1. LISTA DE PERSONAL
         public async Task<IActionResult> Index()
         {
+            if (!User.HasClaim("Permiso", "Admin.Personal")) return RedirectToAction("AccessDenied", "Home");
+
             var personal = await _context.PersonalPolicials
                 .Include(p => p.IdRolNavigation) // Trae el nombre de su rol actual
                 .Where(p => p.Activo == true)
@@ -31,6 +33,8 @@ namespace SistemaCelularesPolicia.Controllers
         // 2. CAMBIAR ROL (GET - Muestra el modal o pagina)
         public async Task<IActionResult> AsignarRol(int id)
         {
+            if (!User.HasClaim("Permiso", "Admin.Personal")) return RedirectToAction("AccessDenied", "Home");
+
             var policia = await _context.PersonalPolicials.FindAsync(id);
             if (policia == null) return NotFound();
 
@@ -45,6 +49,8 @@ namespace SistemaCelularesPolicia.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AsignarRol(int id, int nuevoIdRol)
         {
+            if (!User.HasClaim("Permiso", "Admin.Personal")) return RedirectToAction("AccessDenied", "Home");
+
             var policia = await _context.PersonalPolicials.FindAsync(id);
             if (policia == null) return NotFound();
 

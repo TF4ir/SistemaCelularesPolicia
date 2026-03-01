@@ -11,7 +11,7 @@ namespace SistemaCelularesPolicia.Servicios.Interfaces
         Task RegistrarConsulta(ConsultaPublico consulta);
 
         // Métodos para la Policía
-        Task<PaginacionViewModel> ObtenerListadoPaginado(int pagina, int cantidadPorPagina, string busqueda);
+        Task<PaginacionViewModel> ObtenerListadoPaginado(int pagina, int cantidadPorPagina, string busqueda, DateTime? fechaInicio, DateTime? fechaFin, List<string> situaciones, int? idDependencia);
         Task<bool> RegistrarIncautacion(Celular celular);
         Task<List<Celular>> ObtenerUltimosRegistros(int cantidad);
         Task<List<Fiscalium>> BuscarFiscalias(string term);
@@ -19,6 +19,6 @@ namespace SistemaCelularesPolicia.Servicios.Interfaces
         Task<bool> CambiarSituacion(int idCelular, string nuevaSituacion, string justificacion, int idPolicia);
 
         // Dashboard
-        Task<DashboardViewModel> ObtenerDatosDashboard();
+        Task<DashboardViewModel> ObtenerDatosDashboard(int? idDependencia);
     }
 }

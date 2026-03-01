@@ -79,30 +79,44 @@
     </div>
 
     <div class="row g-4 mb-5">
-        <div class="col-md-5">
+        <div class="col-md-@(Model.EsAdmin ? "4" : "6")">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white py-3">
                     <h6 class="mb-0 fw-bold text-police"><i class="bi bi-pie-chart me-2"></i> Estado de los Equipos</h6>
                 </div>
-                <div class="card-body">
-                    <canvas id="chartSituacion" style="max-height: 250px;"></canvas>
+                <div class="card-body" style="position: relative; height:300px;">
+                    <canvas id="chartSituacion"></canvas>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-7">
+        <div class="col-md-@(Model.EsAdmin ? "4" : "6")">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h6 class="mb-0 fw-bold text-police"><i class="bi bi-bar-chart me-2"></i> Top 5 Marcas Incautadas</h6>
+                    <h6 class="mb-0 fw-bold text-police"><i class="bi bi-bar-chart me-2"></i> Top 5 Marcas</h6>
                 </div>
-                <div class="card-body">
-                    <canvas id="chartMarcas" style="max-height: 250px;"></canvas>
+                <div class="card-body" style="position: relative; height:300px;">
+                    <canvas id="chartMarcas"></canvas>
                 </div>
             </div>
         </div>
+
+        @if (Model.EsAdmin)
+        {
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="mb-0 fw-bold text-police"><i class="bi bi-building me-2"></i> Top 5 Comisarías</h6>
+                    </div>
+                    <div class="card-body" style="position: relative; height:300px;">
+                        <canvas id="chartComisarias"></canvas>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 
-    <div class="card border-0 shadow-sm overflow-hidden">
+    <div class="card border-0 shadow-sm overflow-hidden mb-4">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold text-police"><i class="bi bi-clock-history me-2"></i> Actividad Reciente</h6>
             <a asp-action="VerRegistros" class="btn btn-sm btn-outline-primary">Ver todos</a>
@@ -119,84 +133,122 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model.UltimosRegistros)
+                    @if (Model.UltimosRegistros != null && Model.UltimosRegistros.Any())
+                    {
+                        @foreach (var item in Model.UltimosRegistros)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">@item.Marca @item.Modelo</td>
+                                <td class="small font-monospace">@item.Imei</td>
+                                <td>
+                                    @{
+                                        var situacion = item.Situacion?.ToUpper() ?? "";
+                                        var badgeClass = situacion switch
+                                        {
+                                            "INCAUTADO" => "bg-danger",
+                                            "RECUPERADO" => "bg-success",
+                                            "DEVUELTO" => "bg-primary",
+                                        };
+                                    }
+                                    <span class="badge @badgeClass rounded-pill">@item.Situacion</span>
+                                </td>
+                                <td class="small text-muted">@item.FechaRegistro?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="Corregir" asp-route-id="@item.IdCelular" class="btn btn-sm btn-light text-primary" title="Ver detalle / Corregir">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td class="ps-4 fw-bold text-dark">@item.Marca @item.Modelo</td>
-                            <td class="small font-monospace">@item.Imei</td>
-                            <td>
-                                @{
-                                    var situacion = item.Situacion?.ToUpper() ?? "";
-
-                                    var badgeClass = situacion switch
-                                    {
-                                        "INCAUTADO" => "bg-danger",             // Rojo
-                                        "RECUPERADO" => "bg-success",           // Verde
-                                        "DEVUELTO" => "bg-primary",             // Azul
-                                        "CUSTODIA" => "bg-warning text-dark",   // Amarillo
-                                        "BAJA" => "bg-dark text-white",         // Negro
-                                        _ => "bg-secondary"                     // Gris por defecto
-                                    };
-                                }
-                                <span class="badge @badgeClass rounded-pill">@item.Situacion</span>
-                            </td>
-                            <td class="small text-muted">@item.FechaRegistro?.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td class="text-end pe-4">
-                                <a asp-action="Corregir" asp-route-id="@item.IdCelular" class="btn btn-sm btn-light text-primary" title="Ver detalle / Corregir">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </td>
+                            <td colspan="5" class="text-center text-muted py-4">No hay registros recientes disponibles.</td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
     </div>
-
 </div>
 
-<script>
-    // 1. Gráfico de Situación (Dona)
-    const ctxSituacion = document.getElementById('chartSituacion').getContext('2d');
-    new Chart(ctxSituacion, {
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            
+        // 1. Gráfico de Situación (Dona)
+        const ctxSituacion = document.getElementById('chartSituacion');
+        if (ctxSituacion) {
+        new Chart(ctxSituacion.getContext('2d'), {
         type: 'doughnut',
         data: {
-            labels: @Html.Raw(Json.Serialize(Model.LabelsSituacion)),
-            datasets: [{
-                data: @Html.Raw(Json.Serialize(Model.DataSituacion)),
-                backgroundColor: ['#dc3545', '#198754', '#0dcaf0', '#ffc107', '#6c757d'], // Colores: Rojo, Verde, Azul, Amarillo, Gris
-                borderWidth: 0
-            }]
+        labels: @Html.Raw(Json.Serialize(Model.LabelsSituacion)),
+        datasets: [{
+        data: @Html.Raw(Json.Serialize(Model.DataSituacion)),
+        backgroundColor: ['#dc3545', '#198754', '#0dcaf0', '#ffc107', '#6c757d'],
+        borderWidth: 0
+        }]
         },
         options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'right' }
-            }
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
         }
-    });
+        });
+        }
 
-    // 2. Gráfico de Marcas (Barras)
-    const ctxMarcas = document.getElementById('chartMarcas').getContext('2d');
-    new Chart(ctxMarcas, {
+        // 2. Gráfico de Marcas (Barras Verticales)
+        const ctxMarcas = document.getElementById('chartMarcas');
+        if (ctxMarcas) {
+        new Chart(ctxMarcas.getContext('2d'), {
         type: 'bar',
         data: {
-            labels: @Html.Raw(Json.Serialize(Model.LabelsMarcas)),
-            datasets: [{
-                label: 'Cantidad de Equipos',
-                data: @Html.Raw(Json.Serialize(Model.DataMarcas)),
-                backgroundColor: '#1e3a8a', // Azul Policía
-                borderRadius: 5
-            }]
+        labels: @Html.Raw(Json.Serialize(Model.LabelsMarcas)),
+        datasets: [{
+        label: 'Equipos',
+        data: @Html.Raw(Json.Serialize(Model.DataMarcas)),
+        backgroundColor: '#1e3a8a',
+        borderRadius: 4
+        }]
         },
         options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true }
-            },
-            plugins: {
-                legend: { display: false }
-            }
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true } },
+        plugins: { legend: { display: false } }
         }
-    });
-</script>
+        });
+        }
+
+        // 3. Gráfico de Comisarías (Barras Horizontales - Solo Admin)
+        @if (Model.EsAdmin)
+        {
+            <text>
+                const ctxComisarias = document.getElementById('chartComisarias');
+                if (ctxComisarias) {
+                new Chart(ctxComisarias.getContext('2d'), {
+                type: 'bar', // Tipo barra
+                data: {
+                labels: @Html.Raw(Json.Serialize(Model.LabelsComisarias)),
+                datasets: [{
+                label: 'Registros',
+                data: @Html.Raw(Json.Serialize(Model.DataComisarias)),
+                backgroundColor: '#198754', // Verde Institucional
+                borderRadius: 4
+                }]
+                },
+                options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', // ESTO LO HACE HORIZONTAL
+                scales: { x: { beginAtZero: true } },
+                plugins: { legend: { display: false } }
+                }
+                });
+                }
+            </text>
+        }
+        });
+    </script>
+}

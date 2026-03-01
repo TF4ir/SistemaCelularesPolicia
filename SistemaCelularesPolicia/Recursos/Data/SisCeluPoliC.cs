@@ -20,6 +20,10 @@ public partial class SisCeluPoliC : DbContext
 
     public virtual DbSet<ConsultaPublico> ConsultaPublicos { get; set; }
 
+    public virtual DbSet<Dependencia> Dependencias { get; set; }
+
+    public virtual DbSet<DivisionPolicial> DivisionPolicials { get; set; }
+
     public virtual DbSet<EvidenciaCelular> EvidenciaCelulars { get; set; }
 
     public virtual DbSet<Fiscalium> Fiscalia { get; set; }
@@ -30,9 +34,9 @@ public partial class SisCeluPoliC : DbContext
 
     public virtual DbSet<PersonalPolicial> PersonalPolicials { get; set; }
 
-    public virtual DbSet<Role> Roles { get; set; }
+    public virtual DbSet<RegionPolicial> RegionPolicials { get; set; }
 
-    public virtual DbSet<Dependencia> Dependencias { get; set; }
+    public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<UsuarioPublico> UsuarioPublicos { get; set; }
 
@@ -154,6 +158,47 @@ public partial class SisCeluPoliC : DbContext
                 .HasForeignKey(d => d.IdUsuarioPublico)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__consultas__id_us__534D60F1");
+        });
+
+        modelBuilder.Entity<Dependencia>(entity =>
+        {
+            entity.HasKey(e => e.IdDependencia).HasName("PK__Dependen__BCF199EDE873993B");
+
+            entity.Property(e => e.Activa).HasDefaultValue(true);
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+            entity.Property(e => e.Provincia)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Siglas)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.IdDivisionNavigation).WithMany(p => p.Dependencia)
+                .HasForeignKey(d => d.IdDivision)
+                .HasConstraintName("FK_Dependencia_Division");
+
+            entity.HasOne(d => d.IdRegionNavigation).WithMany(p => p.Dependencia)
+                .HasForeignKey(d => d.IdRegion)
+                .HasConstraintName("FK_Dependencia_Region");
+        });
+
+        modelBuilder.Entity<DivisionPolicial>(entity =>
+        {
+            entity.HasKey(e => e.IdDivision).HasName("PK_DivisionPolicial");
+
+            entity.ToTable("Division_Policial");
+
+            entity.Property(e => e.Activa).HasDefaultValue(true);
+            entity.Property(e => e.NombreDivision)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.IdRegionNavigation).WithMany(p => p.DivisionPolicials)
+                .HasForeignKey(d => d.IdRegion)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Division_Region");
         });
 
         modelBuilder.Entity<EvidenciaCelular>(entity =>
@@ -416,9 +461,25 @@ public partial class SisCeluPoliC : DbContext
                 .IsUnicode(false)
                 .HasColumnName("unidad_dependencia");
 
+            entity.HasOne(d => d.IdDependenciaNavigation).WithMany(p => p.PersonalPolicials)
+                .HasForeignKey(d => d.IdDependencia)
+                .HasConstraintName("FK_PersonalPolicial_Dependencia");
+
             entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.PersonalPolicials)
                 .HasForeignKey(d => d.IdRol)
                 .HasConstraintName("FK_Personal_Rol");
+        });
+
+        modelBuilder.Entity<RegionPolicial>(entity =>
+        {
+            entity.HasKey(e => e.IdRegion).HasName("PK_RegionPolicial");
+
+            entity.ToTable("Region_Policial");
+
+            entity.Property(e => e.Activa).HasDefaultValue(true);
+            entity.Property(e => e.NombreRegion)
+                .HasMaxLength(150)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<Role>(entity =>

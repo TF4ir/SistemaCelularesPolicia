@@ -30,47 +30,62 @@
 
             <div class="list-group list-group-flush my-3">
 
-                <a asp-controller="Policia" asp-action="Dashboard"
-                       class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active-link" : "")">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-
-                <div class="sidebar-heading mt-3">Operaciones</div>
-
-                @if (User.HasClaim("Permiso", "Celulares.Registro"))
+                @if (User.HasClaim("Permiso", "Dashboard.Ver"))
                 {
-                    <a asp-controller="Policia" asp-action="Registrar"
-                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "Registrar" ? "active-link" : "")">
-                        <i class="bi bi-plus-circle"></i> Registrar Incautación
+                    <a asp-controller="Policia" asp-action="Dashboard"
+                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active-link" : "")">
+                        <i class="bi bi-speedometer2"></i> Dashboard
                     </a>
                 }
 
-                @if (User.HasClaim("Permiso", "Celulares.Busqueda"))
+                @if (User.HasClaim("Permiso", "Celulares.Registrar") || User.HasClaim("Permiso", "Celulares.Consultar"))
                 {
-                    <a asp-controller="Policia" asp-action="VerRegistros"
-                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "VerRegistros" || ViewContext.RouteData.Values["Action"]?.ToString() == "ConsultarRegistros" ? "active-link" : "")">
-                        <i class="bi bi-list-ul"></i> Consultar Registros
-                    </a>
+                    <div class="sidebar-heading mt-3">Operaciones</div>
+
+                    @if (User.HasClaim("Permiso", "Celulares.Registrar"))
+                    {
+                        <a asp-controller="Policia" asp-action="Registrar"
+                               class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "Registrar" ? "active-link" : "")">
+                            <i class="bi bi-plus-circle"></i> Registrar Incautación
+                        </a>
+                    }
+
+                    @if (User.HasClaim("Permiso", "Celulares.Consultar"))
+                    {
+                        <a asp-controller="Policia" asp-action="VerRegistros"
+                               class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "VerRegistros" || ViewContext.RouteData.Values["Action"]?.ToString() == "ConsultarRegistros" ? "active-link" : "")">
+                            <i class="bi bi-list-ul"></i> Consultar Registros
+                        </a>
+                    }
                 }
 
-                @if (User.HasClaim("Permiso", "Usuarios.Gestionar"))
+                @if (User.HasClaim("Permiso", "Admin.Dependencias") || User.HasClaim("Permiso", "Admin.Roles") || User.HasClaim("Permiso", "Admin.Personal"))
                 {
                     <div class="sidebar-heading mt-3">Gestión Interna</div>
 
-                    <a asp-controller="Dependencias" asp-action="Index"
-                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dependencias" ? "active-link" : "")">
-                        <i class="bi bi-building"></i> Unidades / Dependencias
-                    </a>
+                    @if (User.HasClaim("Permiso", "Admin.Dependencias"))
+                    {
+                        <a asp-controller="Dependencias" asp-action="Index"
+                               class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dependencias" ? "active-link" : "")">
+                            <i class="bi bi-building"></i> Unidades / Dependencias
+                        </a>
+                    }
 
-                    <a asp-controller="Roles" asp-action="Index"
-                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Roles" ? "active-link" : "")">
-                        <i class="bi bi-shield-lock"></i> Roles y Permisos
-                    </a>
+                    @if (User.HasClaim("Permiso", "Admin.Roles"))
+                    {
+                        <a asp-controller="Roles" asp-action="Index"
+                               class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Roles" ? "active-link" : "")">
+                            <i class="bi bi-shield-lock"></i> Roles y Permisos
+                        </a>
+                    }
 
-                    <a asp-controller="Personal" asp-action="Index"
-                           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Personal" ? "active-link" : "")">
-                        <i class="bi bi-people"></i> Personal Policial
-                    </a>
+                    @if (User.HasClaim("Permiso", "Admin.Personal"))
+                    {
+                        <a asp-controller="Personal" asp-action="Index"
+                               class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Personal" ? "active-link" : "")">
+                            <i class="bi bi-people"></i> Personal Policial
+                        </a>
+                    }
                 }
 
             </div>

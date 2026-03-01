@@ -1,35 +1,39 @@
 ﻿@{
-    ViewData["Title"] = "Acceso Denegado";
+    ViewData["Title"] = "Acceso Restringido";
+    Layout = "_LayoutSidebar";
 }
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema PNP - Recuperación de Equipos</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link rel="stylesheet" href="~/css/layout.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
-</head>
-<div class="container mt-5 text-center">
-    <div class="card border-danger mb-3 mx-auto" style="max-width: 600px;">
-        <div class="card-header bg-danger text-white">
-            <h3><i class="bi bi-shield-x"></i> Acceso Restringido</h3>
-        </div>
-        <div class="card-body">
-            <h5 class="card-title text-danger">No tienes permisos para ver esta página</h5>
-            <p class="card-text">
-                Tu rol actual no tiene los privilegios necesarios para realizar esta acción.
-                Si crees que es un error, contacta al administrador del sistema.
+<div class="container d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 75vh;">
+
+    <div class="icon-circle-box bg-danger bg-opacity-10 text-danger mb-3">
+        <i class="bi bi-shield-lock-fill" style="font-size: 2.5rem;"></i>
+    </div>
+
+    <h2 class="text-danger fw-bold mb-2">Acceso Denegado</h2>
+    <p class="text-muted mb-4" style="font-size: 1rem;">No tiene los permisos necesarios para acceder a esta sección.</p>
+
+    <div class="card border-0 border-start border-danger border-4 shadow-sm text-start" style="max-width: 620px; width: 100%;">
+        <div class="card-body p-4 bg-light bg-opacity-50">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> AVISO DEL SISTEMA SICIR:
+            </h6>
+            <p class="mb-3 text-muted lh-base">
+                Usted se ha registrado en el sistema <strong>SICCIR</strong>. Para hacer uso de los módulos operativos o administrativos, debe solicitar el rol de acceso adjuntando el oficio y el acta respectiva.
             </p>
-            <a asp-controller="Policia" asp-action="Registrar" class="btn btn-outline-secondary">
-                Volver al Inicio
-            </a>
-            <a asp-controller="Account" asp-action="Salir" class="btn btn-danger">
-                Cerrar Sesión
+            <hr class="my-3 text-secondary">
+            <p class="mb-1 text-muted small">
+                Remita la documentación al correo electrónico oficial:
+            </p>
+            <a href="mailto:rpjunin.utic@policia.gob.pe" class="fw-bold text-police text-decoration-none d-inline-flex align-items-center mt-1" style="font-size: 1.05rem;">
+                <i class="bi bi-envelope-at-fill me-2"></i> rpjunin.utic@policia.gob.pe
             </a>
         </div>
     </div>
+
+    <div class="mt-5">
+        <a href="javascript:history.back()" class="btn btn-outline-secondary px-4 py-2 fw-bold shadow-sm">
+            <i class="bi bi-arrow-left me-2"></i> Volver Atrás
+        </a>
+    </div>
+
 </div>

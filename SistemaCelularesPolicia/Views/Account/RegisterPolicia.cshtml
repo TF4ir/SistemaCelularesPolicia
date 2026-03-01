@@ -108,33 +108,42 @@
                                     </div>
                                     <span asp-validation-for="RangoGrado" class="text-danger small"></span>
                                 </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label text-police fw-bold small">1. Filtro Provincia</label>
+                                <div class="col-md-4">
+                                    <label class="form-label text-police fw-bold small">1. Región Policial</label>
                                     <div class="input-with-icon position-relative">
                                         <i class="bi bi-geo-alt position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                                        <select id="ddlProvincia" class="form-select ps-5 border-success">
-                                            <option value="">Seleccione Provincia...</option>
-                                            @if (ViewBag.Provincias != null)
+                                        <select id="ddlRegion" class="form-select ps-5 border-success">
+                                            <option value="">Seleccione Región...</option>
+                                            @if (ViewBag.Regiones != null)
                                             {
-                                                foreach (var prov in ViewBag.Provincias)
+                                                foreach (var reg in ViewBag.Regiones)
                                                 {
-                                                    <option value="@prov">@prov</option>
+                                                    <option value="@reg.IdRegion">@reg.NombreRegion</option>
                                                 }
                                             }
                                         </select>
                                     </div>
                                 </div>
 
-                                <div class="col-md-6">
-                                    <label asp-for="UnidadDependencia" class="form-label text-police fw-bold small">2. Unidad Policial <span class="text-danger">*</span></label>
+                                <div class="col-md-4">
+                                    <label class="form-label text-police fw-bold small">2. División Policial</label>
                                     <div class="input-with-icon position-relative">
-                                        <i class="bi bi-building position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                                        <select asp-for="UnidadDependencia" id="ddlUnidad" class="form-select ps-5" required disabled>
-                                            <option value="">-- Primero elija Provincia --</option>
+                                        <i class="bi bi-diagram-3 position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                        <select id="ddlDivision" class="form-select ps-5 border-success" disabled>
+                                            <option value="">-- Elija Región --</option>
                                         </select>
                                     </div>
-                                    <span asp-validation-for="UnidadDependencia" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label asp-for="IdDependencia" class="form-label text-police fw-bold small">3. Unidad / Comisaría <span class="text-danger">*</span></label>
+                                    <div class="input-with-icon position-relative">
+                                        <i class="bi bi-building position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                        <select asp-for="IdDependencia" id="ddlDependencia" class="form-select ps-5 border-success" required disabled>
+                                            <option value="">-- Elija División --</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="IdDependencia" class="text-danger small"></span>
                                 </div>
                                 <div class="col-12">
                                     <label asp-for="EmailInstitucional" class="form-label text-secondary fw-bold small">Email Institucional <span class="text-danger">*</span></label>
@@ -211,42 +220,44 @@
             $(document).ready(function () {
 
                 // --- 1. LÓGICA DE UNIDADES EN CASCADA (AJAX) ---
-                $("#ddlProvincia").change(function () {
-                    var provinciaSeleccionada = $(this).val();
-                    var $ddlUnidad = $("#ddlUnidad");
+                            // --- 1. LÓGICA DE UNIDADES EN CASCADA (AJAX) ---
+            $("#ddlRegion").change(function () {
+                var regionId = $(this).val();
+                var $ddlDivision = $("#ddlDivision");
+                var $ddlDependencia = $("#ddlDependencia");
 
-                    $ddlUnidad.empty();
+                $ddlDivision.empty().append('<option value="">-- Seleccione División --</option>').prop("disabled", true);
+                $ddlDependencia.empty().append('<option value="">-- Elija División --</option>').prop("disabled", true);
 
-                    if (provinciaSeleccionada) {
-                        $ddlUnidad.append('<option value="">Cargando unidades...</option>');
-                        $ddlUnidad.prop("disabled", true);
-
-                        $.ajax({
-                            url: '/Account/ObtenerUnidadesPorProvincia',
-                            type: 'GET',
-                            data: { provincia: provinciaSeleccionada },
-                            success: function (data) {
-                                $ddlUnidad.empty();
-                                $ddlUnidad.append('<option value="">-- Seleccione su Unidad --</option>');
-                                $.each(data, function (i, item) {
-                                    $ddlUnidad.append($('<option>', {
-                                        value: item.valor,
-                                        text: item.texto
-                                    }));
-                                });
-                                $ddlUnidad.prop("disabled", false);
-                            },
-                            error: function () {
-                                $ddlUnidad.empty();
-                                $ddlUnidad.append('<option value="">Error al cargar</option>');
-                                alert('No se pudo conectar con el servidor.');
-                            }
+                if (regionId) {
+                    $ddlDivision.append('<option value="">Cargando...</option>');
+                    $.getJSON('/Account/ObtenerDivisionesPorRegion', { idRegion: regionId }, function (data) {
+                        $ddlDivision.empty().append('<option value="">-- Seleccione División --</option>');
+                        $.each(data, function (i, item) {
+                            $ddlDivision.append($('<option>', { value: item.valor, text: item.texto }));
                         });
-                    } else {
-                        $ddlUnidad.append('<option value="">-- Primero elija Provincia --</option>');
-                        $ddlUnidad.prop("disabled", true);
-                    }
-                });
+                        $ddlDivision.prop("disabled", false);
+                    });
+                }
+            });
+
+            $("#ddlDivision").change(function () {
+                var divisionId = $(this).val();
+                var $ddlDependencia = $("#ddlDependencia");
+
+                $ddlDependencia.empty().append('<option value="">-- Seleccione Unidad --</option>').prop("disabled", true);
+
+                if (divisionId) {
+                    $ddlDependencia.append('<option value="">Cargando...</option>');
+                    $.getJSON('/Account/ObtenerDependenciasPorDivision', { idDivision: divisionId }, function (data) {
+                        $ddlDependencia.empty().append('<option value="">-- Seleccione Unidad --</option>');
+                        $.each(data, function (i, item) {
+                            $ddlDependencia.append($('<option>', { value: item.valor, text: item.texto }));
+                        });
+                        $ddlDependencia.prop("disabled", false);
+                    });
+                }
+            });
 
                 // --- 2. MOSTRAR/OCULTAR CONTRASEÑA ---
                 $('.toggle-password').click(function () {

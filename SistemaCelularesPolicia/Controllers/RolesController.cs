@@ -7,8 +7,7 @@ using SistemaCelularesPolicia.Recursos.Data;
 
 namespace SistemaCelularesPolicia.Controllers
 {
-    // Solo el Admin puede tocar esto
-    [Authorize(Roles = "Administrador")]
+    [Authorize]
     public class RolesController : Controller
     {
         private readonly SisCeluPoliC _context;
@@ -21,6 +20,8 @@ namespace SistemaCelularesPolicia.Controllers
         // 1. LISTAR ROLES
         public async Task<IActionResult> Index()
         {
+            if (!User.HasClaim("Permiso", "Admin.Roles")) return RedirectToAction("AccessDenied", "Home");
+
             var roles = await _context.Roles.ToListAsync();
             return View(roles);
         }
@@ -28,6 +29,8 @@ namespace SistemaCelularesPolicia.Controllers
         // 2. CREAR O EDITAR (GET - Muestra el formulario)
         public async Task<IActionResult> Upsert(int? id)
         {
+            if (!User.HasClaim("Permiso", "Admin.Roles")) return RedirectToAction("AccessDenied", "Home");
+
             var viewModel = new RolViewModel();
             var todosLosPermisos = await _context.Permisos.ToListAsync();
 
@@ -73,6 +76,8 @@ namespace SistemaCelularesPolicia.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upsert(RolViewModel model)
         {
+            if (!User.HasClaim("Permiso", "Admin.Roles")) return RedirectToAction("AccessDenied", "Home");
+
             if (ModelState.IsValid)
             {
                 Role rol;

@@ -32,30 +32,51 @@ namespace SistemaCelularesPolicia.Servicios.Repository
                 .FirstOrDefaultAsync(c => c.IdCelular == idCelular);
         }
 
-        public async Task<PaginacionViewModel> ObtenerListadoPaginado(int pagina, int cantidadPorPagina, string busqueda)
+        public async Task<PaginacionViewModel> ObtenerListadoPaginado(int pagina, int cantidadPorPagina, string busqueda, DateTime? fechaInicio, DateTime? fechaFin, List<string> situaciones, int? idDependencia)
         {
-            // 1. Empezamos con la consulta base (sin ejecutar aún)
+            // 1. Consulta base (Hacemos Include al policía para saber a qué dependencia pertenece)
             var query = _context.Celulars
                 .Include(c => c.IdFiscaliaNavigation)
-                .AsQueryable(); // Importante para construir la consulta dinámicamente
+                .Include(c => c.IdPolicialRegistroNavigation)
+                .AsQueryable();
 
-            // 2. Aplicar FILTRO si hay búsqueda
+            // 2. Filtro de Búsqueda de texto (IMEI, Marca, Modelo)
             if (!string.IsNullOrEmpty(busqueda))
             {
-                // Buscamos por IMEI O Marca O Modelo
-                query = query.Where(c =>
-                    c.Imei.Contains(busqueda) ||
-                    c.Marca.Contains(busqueda) ||
-                    c.Modelo.Contains(busqueda));
+                query = query.Where(c => c.Imei.Contains(busqueda) || c.Marca.Contains(busqueda) || c.Modelo.Contains(busqueda));
             }
 
-            // 3. Contar el total DE LOS FILTRADOS
+            // 3. Filtro de Data Scoping (Dependencia / Comisaría)
+            if (idDependencia.HasValue)
+            {
+                query = query.Where(c => c.IdPolicialRegistroNavigation.IdDependencia == idDependencia.Value);
+            }
+
+            // 4. Filtro de Fechas (Rango por Fecha de Incautación)
+            if (fechaInicio.HasValue)
+            {
+                query = query.Where(c => c.FechaIncautacion >= fechaInicio.Value);
+            }
+            if (fechaFin.HasValue)
+            {
+                // Sumamos 1 día y restamos 1 tick para incluir hasta las 23:59:59 del día de fin
+                var fin = fechaFin.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(c => c.FechaIncautacion <= fin);
+            }
+
+            // 5. Filtro de Situación (Checkboxes)
+            if (situaciones != null && situaciones.Any())
+            {
+                query = query.Where(c => situaciones.Contains(c.Situacion));
+            }
+
+            // 6. CONTAR EL TOTAL DE LOS FILTRADOS
             var totalRegistros = await query.CountAsync();
 
-            // 4. Calcular páginas
+            // 7. Calcular páginas
             var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)cantidadPorPagina);
 
-            // 5. Aplicar orden y paginación
+            // 8. Aplicar orden y paginación
             var registros = await query
                 .OrderByDescending(c => c.FechaRegistro)
                 .Skip((pagina - 1) * cantidadPorPagina)
@@ -67,7 +88,12 @@ namespace SistemaCelularesPolicia.Servicios.Repository
                 Celulares = registros,
                 PaginaActual = pagina,
                 TotalPaginas = totalPaginas,
-                BusquedaActual = busqueda // Devolvemos el término para la vista
+                TotalRegistros = totalRegistros, // Enviamos el contador a la vista
+                BusquedaActual = busqueda ?? "",
+                FechaInicio = fechaInicio,
+                FechaFin = fechaFin,
+                SituacionesSeleccionadas = situaciones ?? new List<string>(),
+                IdDependenciaFiltro = idDependencia
             };
         }
 
@@ -202,42 +228,56 @@ namespace SistemaCelularesPolicia.Servicios.Repository
             }
         }
 
-        public async Task<DashboardViewModel> ObtenerDatosDashboard()
+        public async Task<DashboardViewModel> ObtenerDatosDashboard(int? idDependencia)
         {
             var vm = new DashboardViewModel();
 
-            // 1. Contadores Rápidos
-            vm.TotalRegistrados = await _context.Celulars.CountAsync();
-            vm.TotalIncautados = await _context.Celulars.CountAsync(c => c.Situacion == "Incautado");
-            vm.TotalRecuperados = await _context.Celulars.CountAsync(c => c.Situacion == "Recuperado");
-            vm.TotalDevueltos = await _context.Celulars.CountAsync(c => c.Situacion == "Devuelto");
+            // 1. Consulta Base Segura
+            var query = _context.Celulars.AsQueryable();
 
-            // 2. Datos para Gráfico de Situación (Agrupado)
-            var datosSituacion = await _context.Celulars
-                .GroupBy(c => c.Situacion)
-                .Select(g => new { Situacion = g.Key, Cantidad = g.Count() })
-                .ToListAsync();
+            if (idDependencia.HasValue)
+            {
+                // Si no es admin, filtramos TODO el dashboard a su comisaría
+                query = query.Where(c => c.IdPolicialRegistroNavigation.IdDependencia == idDependencia.Value);
+            }
 
-            vm.LabelsSituacion = datosSituacion.Select(x => x.Situacion).ToList();
+            // 2. Contadores Rápidos (Usando la query segura)
+            vm.TotalRegistrados = await query.CountAsync();
+            vm.TotalIncautados = await query.CountAsync(c => c.Situacion.ToUpper() == "INCAUTADO");
+            vm.TotalRecuperados = await query.CountAsync(c => c.Situacion.ToUpper() == "RECUPERADO");
+            vm.TotalDevueltos = await query.CountAsync(c => c.Situacion.ToUpper() == "DEVUELTO");
+
+            // 3. Gráfico de Situación
+            var datosSituacion = await query.GroupBy(c => c.Situacion)
+                .Select(g => new { Situacion = g.Key, Cantidad = g.Count() }).ToListAsync();
+            vm.LabelsSituacion = datosSituacion.Select(x => x.Situacion ?? "OTRO").ToList();
             vm.DataSituacion = datosSituacion.Select(x => x.Cantidad).ToList();
 
-            // 3. Datos para Gráfico de Marcas (Top 5)
-            var datosMarcas = await _context.Celulars
-                .GroupBy(c => c.Marca)
+            // 4. Gráfico de Marcas (Top 5)
+            var datosMarcas = await query.GroupBy(c => c.Marca)
                 .Select(g => new { Marca = g.Key, Cantidad = g.Count() })
-                .OrderByDescending(x => x.Cantidad)
-                .Take(5)
-                .ToListAsync();
-
-            vm.LabelsMarcas = datosMarcas.Select(x => x.Marca).ToList();
+                .OrderByDescending(x => x.Cantidad).Take(5).ToListAsync();
+            vm.LabelsMarcas = datosMarcas.Select(x => x.Marca ?? "SIN MARCA").ToList();
             vm.DataMarcas = datosMarcas.Select(x => x.Cantidad).ToList();
 
-            // 4. Últimos 5 registros para la tabla
-            vm.UltimosRegistros = await _context.Celulars
-                .Include(c => c.IdFiscaliaNavigation)
-                .OrderByDescending(c => c.FechaRegistro)
-                .Take(5)
-                .ToListAsync();
+            // 5. NUEVO: Top 5 Comisarías (SOLO SI ES ADMIN)
+            if (!idDependencia.HasValue)
+            {
+                var datosComisarias = await _context.Celulars
+                    .Include(c => c.IdPolicialRegistroNavigation)
+                    .ThenInclude(p => p.IdDependenciaNavigation)
+                    .Where(c => c.IdPolicialRegistroNavigation.IdDependenciaNavigation != null)
+                    .GroupBy(c => c.IdPolicialRegistroNavigation.IdDependenciaNavigation.Nombre)
+                    .Select(g => new { Comisaria = g.Key, Cantidad = g.Count() })
+                    .OrderByDescending(x => x.Cantidad).Take(5).ToListAsync();
+
+                vm.LabelsComisarias = datosComisarias.Select(x => x.Comisaria).ToList();
+                vm.DataComisarias = datosComisarias.Select(x => x.Cantidad).ToList();
+            }
+
+            // 6. Últimos Registros
+            vm.UltimosRegistros = await query.Include(c => c.IdFiscaliaNavigation)
+                .OrderByDescending(c => c.FechaRegistro).Take(5).ToListAsync();
 
             return vm;
         }
