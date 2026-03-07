@@ -7,7 +7,7 @@ using SistemaCelularesPolicia.Recursos.Data;
 
 namespace SistemaCelularesPolicia.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "SoloPolicias")]
     public class DependenciasController : Controller
     {
         private readonly SisCeluPoliC _context;

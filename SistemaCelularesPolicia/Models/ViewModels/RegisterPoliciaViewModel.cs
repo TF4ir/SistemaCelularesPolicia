@@ -24,8 +24,8 @@ namespace SistemaCelularesPolicia.Models.ViewModels
         [Required]
         public string RangoGrado { get; set; } = null!;
 
-        [Required]
-        public string UnidadDependencia { get; set; } = null!;
+        //[Required]
+        //public string UnidadDependencia { get; set; } = null!;
 
         [Required(ErrorMessage = "Debe seleccionar la unidad o comisaría.")]
         public int IdDependencia { get; set; }

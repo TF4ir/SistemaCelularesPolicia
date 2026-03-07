@@ -9,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services
 builder.Services.AddControllersWithViews();
 
-//var connectionString = "Server=tcp:server-pnp-sicir-2.database.windows.net,1433;Initial Catalog=bd-sicir;Persist Security Info=False;User ID=adminpnp;Password=Fabrizio#04;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;";
-var connectionString = "Server=localhost\\SQL2025;Database=SistemaCelularesIncautados;Integrated Security=True;TrustServerCertificate=True;Encrypt=False;";
+var connectionString = "Server=tcp:server-pnp-sicir-2.database.windows.net,1433;Initial Catalog=bd-sicir;Persist Security Info=False;User ID=adminpnp;Password=Fabrizio#04;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;";
+//var connectionString = "Server=localhost\\SQL2025;Database=SistemaCelularesIncautados;Integrated Security=True;TrustServerCertificate=True;Encrypt=False;";
 
 builder.Services.AddDbContext<SisCeluPoliC>(options =>
     options.UseSqlServer(connectionString));
@@ -24,6 +24,18 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromMinutes(20); // La sesión dura 20 mins de inactividad
         options.AccessDeniedPath = "/Home/AccessDenied"; // Si no tiene permisos
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    // Creamos una política que exige que la cookie tenga el sello "TipoCuenta" = "Policial"
+    options.AddPolicy("SoloPolicias", policy =>
+        policy.RequireClaim("TipoCuenta", "Policial"));
+
+    options.AddPolicy("SoloCiudadanos", policy =>
+        policy.RequireRole("Ciudadano"));
+});
+
+
 
 builder.Services.AddScoped<IUsuarioPublico, UsuarioPublicoRepo>();
 

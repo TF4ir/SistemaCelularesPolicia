@@ -6,6 +6,7 @@ using System.Security.Claims;
 
 namespace SistemaCelularesPolicia.Controllers
 {
+    [Authorize(Policy = "SoloCiudadanos")]
     public class ConsultaController : Controller
     {
         private readonly ICelular _celularService;

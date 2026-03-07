@@ -44,7 +44,7 @@
 
                             <div class="row g-4">
                                 <div class="col-md-6">
-                                    <label asp-for="CodigoPolicial" class="form-label text-secondary fw-bold small">Código Policial <span class="text-danger">*</span></label>
+                                    <label asp-for="CodigoPolicial" class="form-label text-secondary fw-bold small">CIP <span class="text-danger">*</span></label>
                                     <div class="input-with-icon position-relative">
                                         <i class="bi bi-shield position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                                         <input asp-for="CodigoPolicial" class="form-control ps-5" placeholder="8 dígitos" maxlength="8" />
@@ -89,21 +89,20 @@
                                         <i class="bi bi-award position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                                         <select asp-for="RangoGrado" class="form-select ps-5">
                                             <option value="">Seleccione...</option>
-                                            <option value="SUBOFICIAL DE TERCERA">SUBOFICIAL DE TERCERA</option>
-                                            <option value="SUBOFICIAL DE SEGUNDA">SUBOFICIAL DE SEGUNDA</option>
-                                            <option value="SUBOFICIAL DE PRIMERA">SUBOFICIAL DE PRIMERA</option>
-                                            <option value="SUBOFICIAL TECNICO DE TERCERA">SUBOFICIAL TECNICO DE TERCERA</option>
-                                            <option value="SUBOFICIAL TECNICO DE SEGUNDA">SUBOFICIAL TECNICO DE SEGUNDA</option>
-                                            <option value="SUBOFICIAL TECNICO DE PRIMERA">SUBOFICIAL TECNICO DE PRIMERA</option>
-                                            <option value="SUBOFICIAL BRIGADIER">SUBOFICIAL BRIGADIER</option>
-                                            <option value="SUBOFICIAL SUPERIOR">SUBOFICIAL SUPERIOR</option>
-                                            <option value="ALFEREZ">ALFEREZ</option>
-                                            <option value="TENIENTE">TENIENTE</option>
-                                            <option value="CAPITAN">CAPITAN</option>
-                                            <option value="MAYOR">MAYOR</option>
-                                            <option value="COMANDANTE">COMANDANTE</option>
-                                            <option value="CORONEL">CORONEL</option>
-                                            <option value="GENERAL">GENERAL</option>
+                                            <option value="CRNL. PNP.">CRNL. PNP.</option>
+                                            <option value="CMDTE. PNP.">CMDTE. PNP.</option>
+                                            <option value="MAY. PNP.">MAY. PNP.</option>
+                                            <option value="CAP. PNP.">CAP. PNP.</option>
+                                            <option value="TNTE. PNP.">TNTE. PNP.</option>
+                                            <option value="ALFZ. PNP.">ALFZ. PNP.</option>
+                                            <option value="SS. PNP.">SS. PNP.</option>
+                                            <option value="SB. PNP.">SB. PNP.</option>
+                                            <option value="ST1. PNP.">ST1. PNP.</option>
+                                            <option value="ST2. PNP.">ST2. PNP.</option>
+                                            <option value="ST3. PNP.">ST3. PNP.</option>
+                                            <option value="S1. PNP.">S1. PNP.</option>
+                                            <option value="S2. PNP.">S2. PNP.</option>
+                                            <option value="S3. PNP.">S3. PNP.</option>
                                         </select>
                                     </div>
                                     <span asp-validation-for="RangoGrado" class="text-danger small"></span>
@@ -199,7 +198,7 @@
 
                             <div class="mt-5">
                                 <button type="submit" class="btn btn-police w-100 py-3 fw-bold shadow-sm">
-                                    <i class="bi bi-person-plus-fill me-2"></i> Registrar Oficial
+                                    <i class="bi bi-person-plus-fill me-2"></i> Registrar Personal Policial
                                 </button>
                             </div>
                         </form>

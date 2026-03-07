@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using SistemaCelularesPolicia.Filters;
 using SistemaCelularesPolicia.Models;
 using SistemaCelularesPolicia.Recursos.Data;
 using SistemaCelularesPolicia.Servicios.Interfaces;
@@ -9,7 +10,8 @@ using System.Security.Claims; // Necesario para User.FindFirst
 
 namespace SistemaCelularesPolicia.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "SoloPolicias")]
+    [Require2FA]
     public class PoliciaController : Controller
     {
         private readonly ICelular _celularService;

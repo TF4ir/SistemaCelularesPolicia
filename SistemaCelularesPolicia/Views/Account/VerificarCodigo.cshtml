@@ -16,11 +16,11 @@
 <body class="bg-app">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-5">
+            <div class="col-md-6 col-lg-5">
                 <div class="card border-0 shadow-lg rounded-4 my-5">
                     <div class="card-body p-5 text-center">
 
-                        <div class="icon-circle-box bg-success-subtle text-public mb-3 d-inline-flex p-3 rounded-circle">
+                        <div class="icon-circle-box bg-success-subtle text-public d-inline-flex p-3 rounded-circle mb-3">
                             <i class="bi bi-envelope-check fs-1"></i>
                         </div>
 
@@ -35,6 +35,11 @@
                             <div class="alert alert-danger small">@ViewBag.Error</div>
                         }
 
+                        @if (TempData["MensajeExito"] != null)
+                        {
+                            <div class="alert alert-success small">@TempData["MensajeExito"]</div>
+                        }
+
                         <form asp-action="VerificarCodigo" method="post">
                             <input type="hidden" name="email" value="@email" />
 
@@ -42,7 +47,7 @@
                                 <label class="form-label text-secondary fw-bold small text-start w-100">Código de Verificación</label>
                                 <div class="input-with-icon position-relative">
                                     <i class="bi bi-key position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                                    <input name="codigo" class="form-control ps-5 text-center fw-bold fs-5 tracking-widest"
+                                    <input name="codigo" class="form-control ps-5 text-center fw-bold fs-5"
                                            placeholder="000000" maxlength="6" required style="letter-spacing: 5px;" />
                                 </div>
                             </div>
@@ -54,8 +59,19 @@
 
                         <div class="mt-4">
                             <small class="text-muted">¿No recibiste el código?</small><br>
-                            <a href="#" class="text-public fw-bold text-decoration-none small">Reenviar código</a>
+                            <form asp-action="ReenviarCodigoPublico" method="post" class="d-inline">
+                                <input type="hidden" name="email" value="@email" />
+                                <button type="submit" class="btn btn-link p-0 text-public fw-bold text-decoration-none small">
+                                    Reenviar código
+                                </button>
+                            </form>
                         </div>
+
+                        <hr class="my-4 opacity-25">
+
+                        <a asp-action="LoginPublico" class="link-back">
+                            <i class="bi bi-arrow-left"></i> Volver al Login
+                        </a>
 
                     </div>
                 </div>

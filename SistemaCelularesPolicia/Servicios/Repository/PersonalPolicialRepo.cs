@@ -38,7 +38,6 @@ namespace SistemaCelularesPolicia.Servicios.Repository
         public async Task<PersonalPolicial> ObtenerPorEmailOCodigo(string input)
         {
             return await _context.PersonalPolicials
-                .AsNoTracking()
                 .Include(u => u.IdRolNavigation)
                     .ThenInclude(r => r.IdPermisos)
                 .Where(p => (p.EmailInstitucional == input || p.CodigoPolicial == input)
@@ -49,7 +48,6 @@ namespace SistemaCelularesPolicia.Servicios.Repository
         public async Task<PersonalPolicial> ObtenerPorId(int id)
         {
             return await _context.PersonalPolicials
-                .AsNoTracking()
                 .Include(u => u.IdRolNavigation)
                     .ThenInclude(r => r.IdPermisos)
                 .FirstOrDefaultAsync(p => p.IdPolicial == id);

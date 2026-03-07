@@ -338,6 +338,32 @@ namespace SistemaCelularesPolicia.Controllers
             return RedirectToAction("LoginPublico");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReenviarCodigoPublico(string email)
+        {
+            // 1. Buscamos en la tabla de ciudadanos
+            var usuario = await _usuarioService.ObtenerPorEmail(email);
+
+            if (usuario != null)
+            {
+                // 2. Generar nuevo código
+                string nuevoCodigo = new Random().Next(100000, 999999).ToString();
+
+                usuario.CodVerificacionEmail = nuevoCodigo;
+                usuario.FechaExpiracionCod = DateTime.UtcNow.AddMinutes(15);
+
+                // 3. Guardar cambios y enviar email
+                await _usuarioService.ActualizarUsuario(usuario);
+                await _emailService.EnviarCorreoVerificacion(usuario.Email, usuario.Nombres, nuevoCodigo);
+
+                TempData["MensajeExito"] = "Se ha reenviado el código a su correo personal.";
+            }
+
+            // 4. Redirigir a la vista de verificación pública
+            return RedirectToAction("VerificarCodigo", new { email = email });
+        }
+
         // --- LOGIN POLICIA ---
         [HttpGet]
         public IActionResult LoginPoliciaVerification()
@@ -370,25 +396,24 @@ namespace SistemaCelularesPolicia.Controllers
                         return View();
                     }
 
-                    // --- AQUÍ EMPIEZA LA LÓGICA 2FA ---
+                    if (policia.EmailVerificado == false)
+                    {
+                        ViewBag.Error = "Su cuenta no está verificada. Revise su correo institucional.";
+                        return RedirectToAction("VerificarCodigoPolicia", new { email = policia.EmailInstitucional });
+                    }
+
                     if (policia.DosFactoresActivo == true)
                     {
-                        // CASO A: TIENE 2FA ACTIVADO
-                        // NO firmamos la cookie todavía.
-                        // Guardamos el ID temporalmente para la siguiente pantalla.
+                        // Obligamos a pasar por Verificar2FA antes de dar la cookie
                         TempData["PreAuthIdPolicia"] = policia.IdPolicial;
-
-                        // Redirigir a pantalla intermedia de verificación
                         return RedirectToAction("Verificar2FA");
                     }
                     else
                     {
-                        // CASO B: NO TIENE 2FA (Primer ingreso o desactivado)
-                        // 1. Firmamos la cookie (Login normal)
+                        // Le damos la cookie
+                        // El filtro [Require2FA] lo desviará automáticamente a Configurar2FA.
                         await CrearCookieSesion(policia);
-
-                        // 2. Lo OBLIGAMOS a configurar 2FA redirigiéndolo ahí
-                        return RedirectToAction("Configurar2FA", "Seguridad");
+                        return RedirectToAction("Registrar", "Policia");
                     }
                 }
             }
@@ -505,7 +530,8 @@ namespace SistemaCelularesPolicia.Controllers
                     new Claim(ClaimTypes.Name, policia.Nombres),
                     new Claim(ClaimTypes.Email, policia.EmailInstitucional ?? ""),
                     new Claim("IdUsuario", policia.IdPolicial.ToString()),
-                    new Claim(ClaimTypes.Role, nombreRol)
+                    new Claim(ClaimTypes.Role, nombreRol),
+                    new Claim("TipoCuenta", "Policial")
                 };
 
             // 2. Cargar Permisos
@@ -546,7 +572,7 @@ namespace SistemaCelularesPolicia.Controllers
 
             if (await _personalService.ExistePolicia(viewModel.CodigoPolicial, viewModel.Dni, viewModel.EmailInstitucional))
             {
-                ModelState.AddModelError("", "El Código Policial, DNI o Email ya están registrados.");
+                ModelState.AddModelError("", "El CIP, DNI o Email ya están registrados.");
                 ViewBag.Regiones = await _context.RegionPolicials.Where(r => r.Activa == true).ToListAsync();
                 return View("RegisterPolicia", viewModel);
             }
@@ -594,7 +620,7 @@ namespace SistemaCelularesPolicia.Controllers
             }
             else
             {
-                ModelState.AddModelError("", "Error al registrar.");
+                ModelState.AddModelError("", "No se pudo conectar con la base de datos de producción. Intente más tarde.");
                 ViewBag.Regiones = await _context.RegionPolicials.Where(r => r.Activa == true).ToListAsync();
                 return View("RegisterPolicia", viewModel);
             }
@@ -611,42 +637,35 @@ namespace SistemaCelularesPolicia.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerificarCodigoPolicia(string email, string codigo)
         {
-            // 1. Buscar Policía
             var policia = await _personalService.ObtenerPorEmailOCodigo(email);
+            if (policia == null) return View();
 
-            if (policia == null)
+            if (policia.CodVerificacionEmail != codigo || policia.FechaExpiracionCod < DateTime.UtcNow)
             {
-                ViewBag.Error = "Usuario no encontrado.";
+                ViewBag.Error = "Código inválido o expirado.";
                 ViewBag.Email = email;
                 return View();
             }
 
-            // 2. Validaciones
-            if (policia.EmailVerificado == true) return RedirectToAction("LoginPolicia");
-
-            if (policia.CodVerificacionEmail != codigo)
-            {
-                ViewBag.Error = "Código incorrecto.";
-                ViewBag.Email = email;
-                return View();
-            }
-
-            if (policia.FechaExpiracionCod < DateTime.UtcNow)
-            {
-                ViewBag.Error = "El código ha expirado.";
-                ViewBag.Email = email;
-                return View();
-            }
-
-            // 3. Activar (UPDATE)
+            // Marcar como verificado
             policia.EmailVerificado = true;
             policia.CodVerificacionEmail = null;
-            policia.FechaExpiracionCod = null;
-
             await _personalService.ActualizarPolicia(policia);
 
-            TempData["MensajeExito"] = "Cuenta verificada. Inicie sesión.";
-            return RedirectToAction("LoginPolicia");
+            if (policia.DosFactoresActivo == true)
+            {
+                // Si ya lo tiene activo (caso de recuperación o re-login), le pedimos el código TOTP
+                TempData["PreAuthIdPolicia"] = policia.IdPolicial;
+                return RedirectToAction("Verificar2FA");
+            }
+            else
+            {
+                // Si NO lo tiene activo, le damos la cookie y lo mandamos a la ruta principal.
+                // ¡El filtro [Require2FA] lo atrapará en el aire y lo mandará a Configurar2FA!
+                await CrearCookieSesion(policia);
+                TempData["MensajeInfo"] = "Email verificado. Ahora, por seguridad, configure su autenticador.";
+                return RedirectToAction("Registrar", "Policia");
+            }
         }
 
         [HttpGet]
@@ -721,6 +740,26 @@ namespace SistemaCelularesPolicia.Controllers
 
             TempData["MensajeExito"] = "Contraseña actualizada. Inicie sesión.";
             return RedirectToAction("LoginPolicia");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReenviarCodigoPolicia(string email)
+        {
+            var policia = await _personalService.ObtenerPorEmailOCodigo(email);
+            if (policia != null)
+            {
+                string nuevoCodigo = new Random().Next(100000, 999999).ToString();
+                policia.CodVerificacionEmail = nuevoCodigo;
+                policia.FechaExpiracionCod = DateTime.UtcNow.AddMinutes(10);
+
+                // Guardamos en BD y enviamos correo
+                await _personalService.ActualizarPolicia(policia);
+                await _emailService.EnviarCorreoVerificacion(policia.EmailInstitucional, policia.Nombres, nuevoCodigo);
+
+                TempData["MensajeInfo"] = "Se ha enviado un nuevo código a su correo.";
+            }
+            return RedirectToAction("VerificarCodigoPolicia", new { email = email });
         }
     }
 }

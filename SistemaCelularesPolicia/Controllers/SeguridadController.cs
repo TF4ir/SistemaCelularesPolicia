@@ -7,7 +7,7 @@ using System.Text;
 
 namespace SistemaCelularesPolicia.Controllers
 {
-    [Authorize(Roles = "Policia")] // Solo policías entran aquí
+    [Authorize(Policy = "SoloPolicias")]
     public class SeguridadController : Controller
     {
         private readonly IPersonalPolicial _personalService;
